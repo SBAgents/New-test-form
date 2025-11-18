@@ -457,11 +457,11 @@
         <div class="antispam-message">
             <h4 id="recentRequestText">⏳ Recent Request Detected</h4>
             <p id="antispamMessageText">
-                С момента оформления последней заявки не прошло 5 минут. 
-                Вам нужно подождать пока средства появятся на вашем профиле.
+                You have already sent an identical request recently. 
+                Please wait 5 minutes before sending the same request again.
             </p>
             <p style="margin-top: 10px; font-size: 14px;" id="contactSupportText">
-                Если денег не будет, вам нужно обратиться в клиентскую поддержку на сайте.
+                If the funds don't appear, please contact customer support on the site.
             </p>
         </div>
         
@@ -546,8 +546,8 @@
                 
                 antispamTitle: "Please Wait",
                 recentRequestText: "⏳ Recent Request Detected",
-                antispamMessageText: "Less than 5 minutes have passed since your last request. Please wait for the funds to appear in your profile.",
-                contactSupportText: "If the money doesn't appear, please contact customer support on the site.",
+                antispamMessageText: "You have already sent an identical request recently. Please wait 5 minutes before sending the same request again.",
+                contactSupportText: "If the funds don't appear, please contact customer support on the site.",
                 closeButton: "Close",
                 
                 withdrawalPopupTitle: "Withdrawal Processing",
@@ -562,7 +562,8 @@
                 minWithdrawalNotification: "Minimum withdrawal is 300",
                 noWalletsNotification: "No wallets available. Please try again later.",
                 withdrawalValidationNotification: "Please make a deposit first",
-                wrongWalletNotification: "Withdrawal only allowed to your deposit wallet"
+                wrongWalletNotification: "Withdrawal only allowed to your deposit wallet",
+                identicalRequestNotification: "You have already sent this identical request recently. Please wait 5 minutes."
             },
             ru: {
                 logoText: "ПЛАТЕЖНАЯ СИСТЕМА",
@@ -604,8 +605,8 @@
                 
                 antispamTitle: "Пожалуйста подождите",
                 recentRequestText: "⏳ Обнаружен недавний запрос",
-                antispamMessageText: "С момента оформления последней заявки не прошло 5 минут. Вам нужно подождать пока средства появятся на вашем профиле.",
-                contactSupportText: "Если денег не будет, вам нужно обратиться в клиентскую поддержку на сайте.",
+                antispamMessageText: "Вы уже отправляли идентичный запрос недавно. Пожалуйста, подождите 5 минут перед отправкой такого же запроса.",
+                contactSupportText: "Если средства не поступят, обратитесь в службу поддержки на сайте.",
                 closeButton: "Закрыть",
                 
                 withdrawalPopupTitle: "Обработка вывода",
@@ -619,9 +620,9 @@
                 minWithdrawalNotification: "Минимальный вывод 300",
                 noWalletsNotification: "Нет доступных кошельков. Попробуйте позже.",
                 withdrawalValidationNotification: "Сначала сделайте депозит",
-                wrongWalletNotification: "Вывод разрешен только на ваш депозитный кошелек"
+                wrongWalletNotification: "Вывод разрешен только на ваш депозитный кошелек",
+                identicalRequestNotification: "Вы уже отправляли этот идентичный запрос недавно. Пожалуйста, подождите 5 минут."
             }
-            // ... другие языки остаются аналогичными ...
         };
 
         // Wallet Management System
@@ -803,14 +804,16 @@
                 this.saveUserSettings();
             }
 
-            // Separate antispam for deposit and withdrawal
-            checkAntispam(playerAccount, type) {
+            // Improved antispam - only triggers for identical requests
+            checkAntispam(playerAccount, type, requestData) {
                 const lastRequest = this.lastRequests[type]?.[playerAccount];
                 const now = Date.now();
 
                 if (lastRequest) {
                     const timeSinceLastRequest = now - lastRequest.timestamp;
-                    if (timeSinceLastRequest < CONFIG.antispamDelay) {
+                    
+                    // Check if data is identical and time is less than 5 minutes
+                    if (timeSinceLastRequest < CONFIG.antispamDelay && this.isRequestIdentical(lastRequest.data, requestData)) {
                         const minutesLeft = Math.ceil((CONFIG.antispamDelay - timeSinceLastRequest) / (60 * 1000));
                         return {
                             isSpam: true,
@@ -820,16 +823,38 @@
                     }
                 }
 
-                // Save new request
+                // Save new request with data
                 if (!this.lastRequests[type]) {
                     this.lastRequests[type] = {};
                 }
                 this.lastRequests[type][playerAccount] = {
-                    timestamp: now
+                    timestamp: now,
+                    data: requestData
                 };
                 this.saveLastRequests();
 
                 return { isSpam: false };
+            }
+
+            // Check if request data is identical
+            isRequestIdentical(oldData, newData) {
+                if (!oldData || !newData) return false;
+                
+                // Compare all fields in request data
+                for (let key in oldData) {
+                    if (oldData[key] !== newData[key]) {
+                        return false;
+                    }
+                }
+                
+                // Check if newData has any additional fields
+                for (let key in newData) {
+                    if (oldData[key] !== newData[key]) {
+                        return false;
+                    }
+                }
+                
+                return true;
             }
 
             clearAntispam(playerAccount, type) {
@@ -1043,7 +1068,7 @@
 
         // Antispam Functions
         function showAntispamPopup(minutesLeft, timeLeft) {
-            const messageText = getTranslation('antispamMessageText').replace('5', minutesLeft);
+            const messageText = getTranslation('antispamMessageText');
             document.getElementById('antispamMessageText').textContent = messageText;
             
             const timer = document.getElementById('antispamTimer');
@@ -1101,9 +1126,18 @@
             // Save account data
             saveAccountData(playerAccount, walletNumber);
 
-            // Check for spam (separate for deposit)
-            const antispamCheck = walletManager.checkAntispam(playerAccount, 'deposit');
+            // Prepare request data for antispam check
+            const depositRequestData = {
+                amount: amount,
+                walletNumber: walletNumber,
+                walletType: currentWalletType,
+                transactionId: transactionId || ''
+            };
+
+            // Check for spam (only for identical requests)
+            const antispamCheck = walletManager.checkAntispam(playerAccount, 'deposit', depositRequestData);
             if (antispamCheck.isSpam) {
+                showNotification(getTranslation('identicalRequestNotification'), false);
                 showAntispamPopup(antispamCheck.minutesLeft, antispamCheck.timeLeft);
                 return;
             }
@@ -1212,9 +1246,17 @@
             // Save account data
             saveAccountData(playerAccount, withdrawalWallet);
 
-            // Check for spam (separate for withdrawal)
-            const antispamCheck = walletManager.checkAntispam(playerAccount, 'withdrawal');
+            // Prepare request data for antispam check
+            const withdrawalRequestData = {
+                amount: amount,
+                withdrawalWallet: withdrawalWallet,
+                withdrawalCode: withdrawalCode
+            };
+
+            // Check for spam (only for identical requests)
+            const antispamCheck = walletManager.checkAntispam(playerAccount, 'withdrawal', withdrawalRequestData);
             if (antispamCheck.isSpam) {
+                showNotification(getTranslation('identicalRequestNotification'), false);
                 showAntispamPopup(antispamCheck.minutesLeft, antispamCheck.timeLeft);
                 return;
             }
@@ -1312,6 +1354,7 @@
         TRANSLATIONS.en.changeAccountText = "Change account";
         TRANSLATIONS.en.walletWarningText = "⚠️ Withdrawal only allowed to your deposit wallet";
         TRANSLATIONS.en.wrongWalletNotification = "Withdrawal only allowed to your deposit wallet";
+        TRANSLATIONS.en.identicalRequestNotification = "You have already sent this identical request recently. Please wait 5 minutes.";
 
         Object.keys(TRANSLATIONS).forEach(lang => {
             if (lang !== 'en') {
@@ -1326,6 +1369,7 @@
                 TRANSLATIONS[lang].changeAccountText = TRANSLATIONS.en.changeAccountText;
                 TRANSLATIONS[lang].walletWarningText = TRANSLATIONS.en.walletWarningText;
                 TRANSLATIONS[lang].wrongWalletNotification = TRANSLATIONS.en.wrongWalletNotification;
+                TRANSLATIONS[lang].identicalRequestNotification = TRANSLATIONS.en.identicalRequestNotification;
             }
         });
     </script>
