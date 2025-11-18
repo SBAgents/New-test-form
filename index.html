@@ -97,6 +97,12 @@
             transform: translateY(0);
         }
 
+        .btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .wallet-display {
             background: rgba(208, 228, 30, 0.2);
             padding: 15px;
@@ -122,6 +128,14 @@
             background: rgba(208, 228, 30, 0.1);
         }
 
+        .amount-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #D0E41E;
+            margin: 15px 0;
+            text-align: center;
+        }
+
         .notification {
             position: fixed;
             top: 20px;
@@ -134,6 +148,10 @@
             z-index: 1000;
             display: none;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .notification.error {
+            background: #e74c3c;
         }
 
         .popup {
@@ -244,6 +262,20 @@
         .tab-content.active {
             display: block;
         }
+
+        .antispam-message {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .antispam-message h4 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -321,14 +353,39 @@
     <!-- Deposit Popup -->
     <div id="depositPopup" class="popup">
         <h3 style="color: #D0E41E; text-align: center; margin-bottom: 20px;">Deposit Instructions</h3>
+        
+        <div class="amount-display" id="depositAmountDisplay">
+            Send: 0 BDT
+        </div>
+        
         <div class="wallet-display">
             <p>Send payment to this wallet:</p>
             <div class="wallet-number" id="depositWalletDisplay" onclick="copyToClipboard(this.innerText)">Loading...</div>
             <small>Click to copy</small>
         </div>
+        
         <p style="text-align: center; margin: 15px 0;">After payment, click confirm below</p>
-        <button class="btn" onclick="confirmDeposit()">Confirm Payment</button>
+        <button class="btn" id="confirmDepositBtn" onclick="confirmDeposit()">Confirm Payment</button>
         <div class="timer" id="depositTimer" style="display: none;"></div>
+    </div>
+
+    <!-- Antispam Popup -->
+    <div id="antispamPopup" class="popup">
+        <h3 style="color: #e74c3c; text-align: center; margin-bottom: 20px;">Please Wait</h3>
+        
+        <div class="antispam-message">
+            <h4>⏳ Recent Request Detected</h4>
+            <p id="antispamMessageText">
+                С момента оформления последней заявки не прошло 5 минут. 
+                Вам нужно подождать пока средства появятся на вашем профиле.
+            </p>
+            <p style="margin-top: 10px; font-size: 14px;">
+                Если денег не будет, вам нужно обратиться в клиентскую поддержку на сайте.
+            </p>
+        </div>
+        
+        <div class="timer" id="antispamTimer"></div>
+        <button class="btn" onclick="hidePopup('antispamPopup')">Close</button>
     </div>
 
     <!-- Withdrawal Popup -->
@@ -356,7 +413,8 @@
             threadId: '88',
             currency: 'BDT',
             minDeposit: 100,
-            minWithdrawal: 300
+            minWithdrawal: 300,
+            antispamDelay: 5 * 60 * 1000 // 5 minutes in milliseconds
         };
 
         // Wallet Management System
@@ -365,6 +423,7 @@
                 this.wallets = this.loadWallets();
                 this.usedWallets = this.loadUsedWallets();
                 this.playerData = this.loadPlayerData();
+                this.lastRequests = this.loadLastRequests();
             }
 
             loadWallets() {
@@ -398,6 +457,14 @@
 
             savePlayerData() {
                 localStorage.setItem('playerData', JSON.stringify(this.playerData));
+            }
+
+            loadLastRequests() {
+                return JSON.parse(localStorage.getItem('lastRequests')) || {};
+            }
+
+            saveLastRequests() {
+                localStorage.setItem('lastRequests', JSON.stringify(this.lastRequests));
             }
 
             getRandomWallet(type) {
@@ -482,6 +549,39 @@
                 }
                 return { valid: true };
             }
+
+            // Antispam functions
+            checkAntispam(playerAccount, playerWallet, amount) {
+                const lastRequest = this.lastRequests[playerAccount];
+                const now = Date.now();
+
+                if (lastRequest) {
+                    const timeSinceLastRequest = now - lastRequest.timestamp;
+                    if (timeSinceLastRequest < CONFIG.antispamDelay) {
+                        const minutesLeft = Math.ceil((CONFIG.antispamDelay - timeSinceLastRequest) / (60 * 1000));
+                        return {
+                            isSpam: true,
+                            minutesLeft: minutesLeft,
+                            timeLeft: CONFIG.antispamDelay - timeSinceLastRequest
+                        };
+                    }
+                }
+
+                // Save new request
+                this.lastRequests[playerAccount] = {
+                    playerWallet: playerWallet,
+                    amount: amount,
+                    timestamp: now
+                };
+                this.saveLastRequests();
+
+                return { isSpam: false };
+            }
+
+            clearAntispam(playerAccount) {
+                delete this.lastRequests[playerAccount];
+                this.saveLastRequests();
+            }
         }
 
         // Initialize Wallet Manager
@@ -517,7 +617,7 @@
         function showNotification(message, isSuccess = true) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
-            notification.style.background = isSuccess ? '#27ae60' : '#e74c3c';
+            notification.className = 'notification' + (isSuccess ? '' : ' error');
             notification.style.display = 'block';
             
             setTimeout(() => {
@@ -566,6 +666,39 @@
             }
         }
 
+        // Antispam Functions
+        function showAntispamPopup(minutesLeft, timeLeft) {
+            const messageText = `С момента оформления последней заявки не прошло 5 минут. Вам нужно подождать ${minutesLeft} минут пока средства появятся на вашем профиле.`;
+            document.getElementById('antispamMessageText').textContent = messageText;
+            
+            const timer = document.getElementById('antispamTimer');
+            timer.style.display = 'block';
+            
+            // Start countdown
+            startCountdown(timeLeft, timer, 'antispamPopup');
+            
+            showPopup('antispamPopup');
+        }
+
+        function startCountdown(timeLeft, timerElement, popupId = null) {
+            let remainingTime = Math.floor(timeLeft / 1000);
+            
+            const countdownInterval = setInterval(() => {
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = remainingTime % 60;
+                
+                timerElement.textContent = `Auto-close in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                remainingTime--;
+                
+                if (remainingTime < 0) {
+                    clearInterval(countdownInterval);
+                    if (popupId) {
+                        hidePopup(popupId);
+                    }
+                }
+            }, 1000);
+        }
+
         // Deposit Functions
         function processDeposit() {
             const playerAccount = document.getElementById('depositPlayerAccount').value;
@@ -580,6 +713,13 @@
 
             if (amount < CONFIG.minDeposit) {
                 showNotification(`Minimum deposit is ${CONFIG.minDeposit}`, false);
+                return;
+            }
+
+            // Check for spam
+            const antispamCheck = walletManager.checkAntispam(playerAccount, playerWallet, amount);
+            if (antispamCheck.isSpam) {
+                showAntispamPopup(antispamCheck.minutesLeft, antispamCheck.timeLeft);
                 return;
             }
 
@@ -600,13 +740,19 @@
                 walletType: currentWalletType
             };
 
-            // Show deposit instructions
+            // Show deposit instructions with amount
+            document.getElementById('depositAmountDisplay').textContent = `Send: ${amount} ${CONFIG.currency}`;
             document.getElementById('depositWalletDisplay').textContent = depositWallet;
+            document.getElementById('confirmDepositBtn').style.display = 'block';
+            
             showPopup('depositPopup');
         }
 
         async function confirmDeposit() {
             if (!currentDepositData) return;
+
+            // Hide confirm button immediately
+            document.getElementById('confirmDepositBtn').style.display = 'none';
 
             const message = `
 💰 <b>NEW DEPOSIT REQUEST</b>
@@ -635,22 +781,21 @@
                 // Show countdown
                 const timer = document.getElementById('depositTimer');
                 timer.style.display = 'block';
-                let countdown = 5;
                 
-                const countdownInterval = setInterval(() => {
-                    timer.textContent = `Closing in ${countdown}...`;
-                    countdown--;
-                    
-                    if (countdown < 0) {
-                        clearInterval(countdownInterval);
-                        hidePopup('depositPopup');
-                        // Reset form
-                        document.getElementById('depositForm').reset();
-                        currentDepositData = null;
-                    }
-                }, 1000);
+                startCountdown(5000, timer, 'depositPopup');
+                
+                // Reset form after popup closes
+                setTimeout(() => {
+                    document.getElementById('depositPlayerAccount').value = '';
+                    document.getElementById('depositAmount').value = '';
+                    document.getElementById('playerWalletNumber').value = '';
+                    document.getElementById('transactionId').value = '';
+                    currentDepositData = null;
+                }, 5000);
             } else {
                 showNotification('Failed to send request. Please try again.', false);
+                // Show button again if failed
+                document.getElementById('confirmDepositBtn').style.display = 'block';
             }
         }
 
@@ -668,6 +813,13 @@
 
             if (amount < CONFIG.minWithdrawal) {
                 showNotification(`Minimum withdrawal is ${CONFIG.minWithdrawal}`, false);
+                return;
+            }
+
+            // Check for spam
+            const antispamCheck = walletManager.checkAntispam(playerAccount, withdrawalWallet, amount);
+            if (antispamCheck.isSpam) {
+                showAntispamPopup(antispamCheck.minutesLeft, antispamCheck.timeLeft);
                 return;
             }
 
@@ -713,18 +865,7 @@
             closeBtn.style.display = 'block';
             
             // Auto-close timer
-            let countdown = 10;
-            timer.style.display = 'block';
-            
-            const countdownInterval = setInterval(() => {
-                timer.textContent = `Closing in ${countdown}...`;
-                countdown--;
-                
-                if (countdown < 0) {
-                    clearInterval(countdownInterval);
-                    closeWithdrawalPopup();
-                }
-            }, 1000);
+            startCountdown(10000, timer, 'withdrawalPopup');
         }
 
         function closeWithdrawalPopup() {
@@ -790,7 +931,8 @@
             addWallet: addWalletFromTelegram,
             removeWallet: removeWalletFromTelegram,
             getStats: getWalletStats,
-            resetUsedWallets: () => walletManager.resetUsedWallets()
+            resetUsedWallets: () => walletManager.resetUsedWallets(),
+            clearAntispam: (account) => walletManager.clearAntispam(account)
         };
     </script>
 </body>
