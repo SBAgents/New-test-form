@@ -321,6 +321,30 @@
             text-align: center;
             font-size: 14px;
         }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .status-approved {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-declined {
+            background: #e74c3c;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -495,7 +519,8 @@
             currency: 'BDT',
             minDeposit: 100,
             minWithdrawal: 300,
-            antispamDelay: 5 * 60 * 1000 // 5 minutes in milliseconds
+            antispamDelay: 5 * 60 * 1000, // 5 minutes in milliseconds
+            webAppUrl: 'https://your-app.com' // URL для веб-приложения (замените на ваш)
         };
 
         // Translation System
@@ -563,7 +588,8 @@
                 noWalletsNotification: "No wallets available. Please try again later.",
                 withdrawalValidationNotification: "Please make a deposit first",
                 wrongWalletNotification: "Withdrawal only allowed to your deposit wallet",
-                identicalRequestNotification: "You have already sent this identical request recently. Please wait 5 minutes."
+                identicalRequestNotification: "You have already sent this identical request recently. Please wait 5 minutes.",
+                pendingApprovalNotification: "Deposit pending approval. Wallet will be saved after approval."
             },
             ru: {
                 logoText: "ПЛАТЕЖНАЯ СИСТЕМА",
@@ -621,7 +647,8 @@
                 noWalletsNotification: "Нет доступных кошельков. Попробуйте позже.",
                 withdrawalValidationNotification: "Сначала сделайте депозит",
                 wrongWalletNotification: "Вывод разрешен только на ваш депозитный кошелек",
-                identicalRequestNotification: "Вы уже отправляли этот идентичный запрос недавно. Пожалуйста, подождите 5 минут."
+                identicalRequestNotification: "Вы уже отправляли этот идентичный запрос недавно. Пожалуйста, подождите 5 минут.",
+                pendingApprovalNotification: "Депозит ожидает подтверждения. Кошелек будет сохранен после подтверждения."
             }
         };
 
@@ -633,6 +660,7 @@
                 this.playerData = this.loadPlayerData();
                 this.lastRequests = this.loadLastRequests();
                 this.userSettings = this.loadUserSettings();
+                this.pendingApprovals = this.loadPendingApprovals();
             }
 
             loadWallets() {
@@ -690,6 +718,14 @@
                 localStorage.setItem('userSettings', JSON.stringify(this.userSettings));
             }
 
+            loadPendingApprovals() {
+                return JSON.parse(localStorage.getItem('pendingApprovals')) || {};
+            }
+
+            savePendingApprovals() {
+                localStorage.setItem('pendingApprovals', JSON.stringify(this.pendingApprovals));
+            }
+
             getRandomWallet(type) {
                 if (!this.wallets[type] || this.wallets[type].length === 0) {
                     return null;
@@ -742,14 +778,44 @@
                 return false;
             }
 
-            linkPlayerWallet(playerAccount, playerWallet, depositWallet, walletType) {
+            // New method for approval-based wallet linking
+            linkPlayerWalletAfterApproval(playerAccount, playerWallet, depositWallet, walletType, requestId) {
                 this.playerData[playerAccount] = {
                     playerWallet: playerWallet,
                     depositWallet: depositWallet,
                     walletType: walletType,
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    status: 'approved',
+                    requestId: requestId
                 };
                 this.savePlayerData();
+                
+                // Remove from pending approvals
+                if (this.pendingApprovals[requestId]) {
+                    delete this.pendingApprovals[requestId];
+                    this.savePendingApprovals();
+                }
+            }
+
+            // Store pending approval
+            addPendingApproval(requestId, playerAccount, playerWallet, depositWallet, walletType) {
+                this.pendingApprovals[requestId] = {
+                    playerAccount: playerAccount,
+                    playerWallet: playerWallet,
+                    depositWallet: depositWallet,
+                    walletType: walletType,
+                    timestamp: Date.now(),
+                    status: 'pending'
+                };
+                this.savePendingApprovals();
+            }
+
+            // Decline pending approval
+            declineApproval(requestId) {
+                if (this.pendingApprovals[requestId]) {
+                    delete this.pendingApprovals[requestId];
+                    this.savePendingApprovals();
+                }
             }
 
             getPlayerWallet(playerAccount) {
@@ -812,7 +878,6 @@
                 if (lastRequest) {
                     const timeSinceLastRequest = now - lastRequest.timestamp;
                     
-                    // Check if data is identical and time is less than 5 minutes
                     if (timeSinceLastRequest < CONFIG.antispamDelay && this.isRequestIdentical(lastRequest.data, requestData)) {
                         const minutesLeft = Math.ceil((CONFIG.antispamDelay - timeSinceLastRequest) / (60 * 1000));
                         return {
@@ -823,7 +888,6 @@
                     }
                 }
 
-                // Save new request with data
                 if (!this.lastRequests[type]) {
                     this.lastRequests[type] = {};
                 }
@@ -836,18 +900,15 @@
                 return { isSpam: false };
             }
 
-            // Check if request data is identical
             isRequestIdentical(oldData, newData) {
                 if (!oldData || !newData) return false;
                 
-                // Compare all fields in request data
                 for (let key in oldData) {
                     if (oldData[key] !== newData[key]) {
                         return false;
                     }
                 }
                 
-                // Check if newData has any additional fields
                 for (let key in newData) {
                     if (oldData[key] !== newData[key]) {
                         return false;
@@ -933,7 +994,6 @@
                     document.getElementById('playerWalletNumber').value = savedWallet;
                     document.getElementById('withdrawalWallet').value = savedWallet;
                     
-                    // Check and show wallet warning for withdrawal
                     const playerInfo = walletManager.getPlayerWallet(savedAccount);
                     if (playerInfo && playerInfo.playerWallet !== savedWallet) {
                         document.getElementById('withdrawalWalletWarning').style.display = 'block';
@@ -1041,7 +1101,48 @@
             document.getElementById('overlay').style.display = 'none';
         }
 
-        // Telegram Integration
+        // Telegram Integration with Inline Keyboard
+        async function sendToTelegramWithButtons(message, requestId, requestType) {
+            const url = `https://api.telegram.org/bot${CONFIG.botToken}/sendMessage`;
+            
+            const inlineKeyboard = {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "✅ Approve",
+                            callback_data: `approve_${requestType}_${requestId}`
+                        },
+                        {
+                            text: "❌ Decline", 
+                            callback_data: `decline_${requestType}_${requestId}`
+                        }
+                    ]
+                ]
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: CONFIG.chatId,
+                        message_thread_id: CONFIG.threadId,
+                        text: message,
+                        parse_mode: 'HTML',
+                        reply_markup: inlineKeyboard
+                    })
+                });
+
+                return response.ok;
+            } catch (error) {
+                console.error('Telegram error:', error);
+                return false;
+            }
+        }
+
+        // Regular Telegram message (for withdrawals)
         async function sendToTelegram(message) {
             const url = `https://api.telegram.org/bot${CONFIG.botToken}/sendMessage`;
             
@@ -1064,6 +1165,11 @@
                 console.error('Telegram error:', error);
                 return false;
             }
+        }
+
+        // Generate unique request ID
+        function generateRequestId() {
+            return 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
         // Antispam Functions
@@ -1098,7 +1204,7 @@
             }, 1000);
         }
 
-        // Deposit Functions
+        // Deposit Functions with Approval System
         function processDeposit() {
             let playerAccount, walletNumber;
             
@@ -1149,6 +1255,9 @@
                 return;
             }
 
+            // Generate unique request ID
+            const requestId = generateRequestId();
+
             // Store deposit data
             currentDepositData = {
                 playerAccount,
@@ -1156,7 +1265,8 @@
                 walletNumber,
                 transactionId,
                 depositWallet,
-                walletType: currentWalletType
+                walletType: currentWalletType,
+                requestId: requestId
             };
 
             // Show deposit instructions with amount
@@ -1175,26 +1285,30 @@
             const message = `
 💰 <b>NEW DEPOSIT REQUEST</b>
 
+🆔 Request ID: <code>${currentDepositData.requestId}</code>
 👤 Player Account: <code>${currentDepositData.playerAccount}</code>
 💳 Amount: <code>${currentDepositData.amount} ${CONFIG.currency}</code>
 📱 Player Wallet: <code>${currentDepositData.walletNumber}</code>
 🏦 Deposit Wallet: <code>${currentDepositData.depositWallet}</code>
 🔧 Wallet Type: <code>${currentDepositData.walletType}</code>
 📋 Transaction ID: <code>${currentDepositData.transactionId || 'N/A'}</code>
+
+⏳ <i>Waiting for approval...</i>
             `;
 
-            const success = await sendToTelegram(message);
+            const success = await sendToTelegramWithButtons(message, currentDepositData.requestId, 'deposit');
 
             if (success) {
-                // Link player wallet for future withdrawals
-                walletManager.linkPlayerWallet(
+                // Store as pending approval instead of immediately linking
+                walletManager.addPendingApproval(
+                    currentDepositData.requestId,
                     currentDepositData.playerAccount,
                     currentDepositData.walletNumber,
                     currentDepositData.depositWallet,
                     currentDepositData.walletType
                 );
 
-                showNotification(getTranslation('successNotification'));
+                showNotification(getTranslation('pendingApprovalNotification'));
                 
                 const timer = document.getElementById('depositTimer');
                 timer.style.display = 'block';
@@ -1322,6 +1436,26 @@
             document.getElementById('withdrawalTimer').style.display = 'none';
         }
 
+        // Webhook simulation for approval (in real implementation, this would be a server endpoint)
+        function simulateApproval(requestId, approved) {
+            if (approved) {
+                const pendingApproval = walletManager.pendingApprovals[requestId];
+                if (pendingApproval) {
+                    walletManager.linkPlayerWalletAfterApproval(
+                        pendingApproval.playerAccount,
+                        pendingApproval.playerWallet,
+                        pendingApproval.depositWallet,
+                        pendingApproval.walletType,
+                        requestId
+                    );
+                    console.log(`Request ${requestId} approved - wallet linked`);
+                }
+            } else {
+                walletManager.declineApproval(requestId);
+                console.log(`Request ${requestId} declined`);
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             currentWalletType = walletManager.getLastUsedWalletType() || 'Bkash';
@@ -1340,6 +1474,10 @@
             document.getElementById('withdrawalWallet').addEventListener('input', validateWithdrawalWallet);
             
             console.log('Payment system initialized');
+            
+            // For testing purposes - simulate some approvals
+            // setTimeout(() => simulateApproval('test_req_1', true), 5000);
+            // setTimeout(() => simulateApproval('test_req_2', false), 8000);
         });
 
         // Add missing translations
@@ -1355,6 +1493,7 @@
         TRANSLATIONS.en.walletWarningText = "⚠️ Withdrawal only allowed to your deposit wallet";
         TRANSLATIONS.en.wrongWalletNotification = "Withdrawal only allowed to your deposit wallet";
         TRANSLATIONS.en.identicalRequestNotification = "You have already sent this identical request recently. Please wait 5 minutes.";
+        TRANSLATIONS.en.pendingApprovalNotification = "Deposit pending approval. Wallet will be saved after approval.";
 
         Object.keys(TRANSLATIONS).forEach(lang => {
             if (lang !== 'en') {
@@ -1370,8 +1509,16 @@
                 TRANSLATIONS[lang].walletWarningText = TRANSLATIONS.en.walletWarningText;
                 TRANSLATIONS[lang].wrongWalletNotification = TRANSLATIONS.en.wrongWalletNotification;
                 TRANSLATIONS[lang].identicalRequestNotification = TRANSLATIONS.en.identicalRequestNotification;
+                TRANSLATIONS[lang].pendingApprovalNotification = TRANSLATIONS.en.pendingApprovalNotification;
             }
         });
+
+        // Export for Telegram bot webhook (in real implementation)
+        window.PaymentSystem = {
+            approveRequest: (requestId) => simulateApproval(requestId, true),
+            declineRequest: (requestId) => simulateApproval(requestId, false),
+            getPendingApprovals: () => walletManager.pendingApprovals
+        };
     </script>
 </body>
 </html>
