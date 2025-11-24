@@ -347,52 +347,6 @@
             color: white;
         }
 
-        .admin-commands {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid #D0E41E;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            font-size: 12px;
-        }
-
-        .admin-commands h4 {
-            color: #D0E41E;
-            margin-bottom: 8px;
-        }
-
-        /* Новые стили для кнопок Approve/Decline */
-        .admin-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .admin-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .admin-btn.approve {
-            background: #27ae60;
-            color: white;
-        }
-
-        .admin-btn.decline {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .admin-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
         .wallet-history {
             margin-top: 15px;
             padding: 10px;
@@ -436,14 +390,6 @@
         <div class="header">
             <div class="logo" id="logoText">PAYMENT SYSTEM</div>
             <div class="subtitle" id="subtitleText">Secure Deposits & Withdrawals</div>
-        </div>
-
-        <!-- Admin Commands Info -->
-        <div class="admin-commands">
-            <h4>📋 Admin Commands for Telegram:</h4>
-            <p><code>/approve_REQUEST_ID</code> - Approve deposit</p>
-            <p><code>/decline_REQUEST_ID</code> - Decline deposit</p>
-            <p><code>/list_pending</code> - Show pending requests</p>
         </div>
 
         <div class="tab-container">
@@ -550,12 +496,7 @@
         <p style="text-align: center; margin: 15px 0;" id="afterPaymentText">After payment, click confirm below</p>
         <button class="btn" id="confirmDepositBtn" onclick="confirmDeposit()">Confirm Payment</button>
         
-        <!-- Кнопки для админа -->
-        <div class="admin-buttons" id="adminButtons" style="display: none; margin-top: 15px;">
-            <button class="admin-btn decline" onclick="declineDeposit()">Decline</button>
-            <button class="admin-btn approve" onclick="approveDeposit()">Approve</button>
-        </div>
-        
+        <!-- Таймер закрытия -->
         <div class="timer" id="depositTimer" style="display: none;"></div>
     </div>
 
@@ -651,8 +592,7 @@
                 approvedWalletsText: "Your Approved Wallets:",
                 noApprovedWalletsText: "No approved wallets yet. Make a deposit first.",
                 depositConfirmedText: "Deposit confirmed! Waiting for admin approval...",
-                depositApprovedText: "Deposit approved! Wallet saved successfully.",
-                depositDeclinedText: "Deposit declined by admin."
+                autoCloseText: "Auto-close in"
             },
             ru: {
                 logoText: "ПЛАТЕЖНАЯ СИСТЕМА",
@@ -707,8 +647,7 @@
                 approvedWalletsText: "Ваши подтвержденные кошельки:",
                 noApprovedWalletsText: "Пока нет подтвержденных кошельков. Сначала сделайте депозит.",
                 depositConfirmedText: "Депозит подтвержден! Ожидание подтверждения админа...",
-                depositApprovedText: "Депозит подтвержден! Кошелек успешно сохранен.",
-                depositDeclinedText: "Депозит отклонен админом."
+                autoCloseText: "Автозакрытие через"
             }
         };
 
@@ -1214,14 +1153,24 @@
             document.getElementById('overlay').style.display = 'none';
         }
 
-        // Telegram Integration with Commands (без вебхуков)
-        async function sendToTelegramWithCommands(message, requestId) {
+        // Telegram Integration with Inline Keyboard
+        async function sendToTelegramWithInlineKeyboard(message, requestId) {
             const url = `https://api.telegram.org/bot${CONFIG.botToken}/sendMessage`;
             
-            const commandMessage = `${message}\n\n` +
-                `💡 <b>Admin Commands:</b>\n` +
-                `<code>/approve_${requestId}</code> - Approve this deposit\n` +
-                `<code>/decline_${requestId}</code> - Decline this deposit`;
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "✅ Approve",
+                            callback_data: `approve_${requestId}`
+                        },
+                        {
+                            text: "❌ Decline", 
+                            callback_data: `decline_${requestId}`
+                        }
+                    ]
+                ]
+            };
 
             try {
                 const response = await fetch(url, {
@@ -1232,8 +1181,9 @@
                     body: JSON.stringify({
                         chat_id: CONFIG.chatId,
                         message_thread_id: CONFIG.threadId,
-                        text: commandMessage,
-                        parse_mode: 'HTML'
+                        text: message,
+                        parse_mode: 'HTML',
+                        reply_markup: keyboard
                     })
                 });
 
@@ -1246,7 +1196,7 @@
 
         // Regular Telegram message (for withdrawals)
         async function sendToTelegram(message) {
-            const url = `https://api.gram.org/bot${CONFIG.botToken}/sendMessage`;
+            const url = `https://api.telegram.org/bot${CONFIG.botToken}/sendMessage`;
             
             try {
                 const response = await fetch(url, {
@@ -1306,7 +1256,7 @@
             }, 1000);
         }
 
-        // Deposit Functions with Command-based Approval
+        // Deposit Functions with Inline Keyboard Approval
         function processDeposit() {
             let playerAccount, walletNumber;
             
@@ -1375,9 +1325,7 @@
             document.getElementById('depositAmountDisplay').textContent = `${getTranslation('sendText')}: ${amount} ${CONFIG.currency}`;
             document.getElementById('depositWalletDisplay').textContent = depositWallet;
             document.getElementById('confirmDepositBtn').style.display = 'block';
-            
-            // Показываем кнопки для админа (для тестирования)
-            document.getElementById('adminButtons').style.display = 'flex';
+            document.getElementById('depositTimer').style.display = 'none';
             
             showPopup('depositPopup');
         }
@@ -1386,7 +1334,6 @@
             if (!currentDepositData) return;
 
             document.getElementById('confirmDepositBtn').style.display = 'none';
-            document.getElementById('adminButtons').style.display = 'none';
 
             const message = `
 💰 <b>NEW DEPOSIT REQUEST - AWAITING APPROVAL</b>
@@ -1402,7 +1349,7 @@
 ⏳ <i>Waiting for admin approval...</i>
             `;
 
-            const success = await sendToTelegramWithCommands(message, currentDepositData.requestId);
+            const success = await sendToTelegramWithInlineKeyboard(message, currentDepositData.requestId);
 
             if (success) {
                 // Store as pending approval
@@ -1416,23 +1363,33 @@
 
                 showNotification(getTranslation('depositConfirmedText'));
                 
+                // Показываем таймер закрытия
                 const timer = document.getElementById('depositTimer');
                 timer.style.display = 'block';
-                timer.textContent = getTranslation('pendingApprovalNotification');
                 
-                setTimeout(() => {
-                    hidePopup('depositPopup');
-                    document.getElementById('depositAmount').value = '';
-                    document.getElementById('transactionId').value = '';
-                    document.getElementById('confirmDepositBtn').style.display = 'block';
-                    document.getElementById('adminButtons').style.display = 'flex';
-                    document.getElementById('depositTimer').style.display = 'none';
-                    currentDepositData = null;
-                }, 5000);
+                // Запускаем обратный отсчет 5 секунд
+                let countdown = 5;
+                timer.textContent = `${getTranslation('autoCloseText')}: ${countdown}s`;
+                
+                const countdownInterval = setInterval(() => {
+                    countdown--;
+                    timer.textContent = `${getTranslation('autoCloseText')}: ${countdown}s`;
+                    
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                        hidePopup('depositPopup');
+                        document.getElementById('depositAmount').value = '';
+                        document.getElementById('transactionId').value = '';
+                        document.getElementById('playerWalletNumber').value = '';
+                        document.getElementById('confirmDepositBtn').style.display = 'block';
+                        document.getElementById('depositTimer').style.display = 'none';
+                        currentDepositData = null;
+                    }
+                }, 1000);
+                
             } else {
                 showNotification(getTranslation('errorNotification'), false);
                 document.getElementById('confirmDepositBtn').style.display = 'block';
-                document.getElementById('adminButtons').style.display = 'flex';
             }
         }
 
@@ -1540,70 +1497,6 @@
             document.getElementById('withdrawalTimer').style.display = 'none';
         }
 
-        // Функции для админского подтверждения
-        async function approveDeposit() {
-            if (!currentDepositData) return;
-
-            const success = await walletManager.approveWallet(
-                currentDepositData.playerAccount,
-                currentDepositData.walletNumber,
-                currentDepositData.walletType
-            );
-
-            if (success) {
-                showNotification(getTranslation('depositApprovedText'));
-                walletManager.removePendingApproval(currentDepositData.requestId);
-                
-                // Отправляем уведомление в Telegram
-                const approvalMessage = `
-✅ <b>DEPOSIT APPROVED</b>
-
-🆔 Request ID: <code>${currentDepositData.requestId}</code>
-👤 Player Account: <code>${currentDepositData.playerAccount}</code>
-💳 Amount: <code>${currentDepositData.amount} ${CONFIG.currency}</code>
-📱 Player Wallet: <code>${currentDepositData.walletNumber}</code>
-🔧 Wallet Type: <code>${currentDepositData.walletType}</code>
-
-✅ <i>Wallet has been approved and saved to database</i>
-                `;
-                
-                await sendToTelegram(approvalMessage);
-                
-            } else {
-                showNotification('Failed to approve wallet', false);
-            }
-
-            hidePopup('depositPopup');
-            document.getElementById('depositAmount').value = '';
-            document.getElementById('transactionId').value = '';
-            currentDepositData = null;
-        }
-
-        async function declineDeposit() {
-            if (!currentDepositData) return;
-
-            walletManager.removePendingApproval(currentDepositData.requestId);
-            showNotification(getTranslation('depositDeclinedText'));
-            
-            // Отправляем уведомление в Telegram
-            const declineMessage = `
-❌ <b>DEPOSIT DECLINED</b>
-
-🆔 Request ID: <code>${currentDepositData.requestId}</code>
-👤 Player Account: <code>${currentDepositData.playerAccount}</code>
-💳 Amount: <code>${currentDepositData.amount} ${CONFIG.currency}</code>
-
-❌ <i>Deposit request has been declined</i>
-            `;
-            
-            await sendToTelegram(declineMessage);
-
-            hidePopup('depositPopup');
-            document.getElementById('depositAmount').value = '';
-            document.getElementById('transactionId').value = '';
-            currentDepositData = null;
-        }
-
         // Manual approval functions (для админа через консоль)
         function approveRequest(requestId) {
             const pendingApproval = walletManager.pendingApprovals[requestId];
@@ -1694,8 +1587,7 @@
             approveRequest: (requestId) => approveRequest(requestId),
             declineRequest: (requestId) => declineRequest(requestId),
             getPendingApprovals: () => walletManager.pendingApprovals,
-            getPlayerData: () => walletManager.playerData,
-            showAdminApproval: () => showPopup('adminApprovalPopup')
+            getPlayerData: () => walletManager.playerData
         };
     </script>
 </body>
