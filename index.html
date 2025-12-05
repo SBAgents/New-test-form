@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 500px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
@@ -32,8 +32,6 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .logo {
@@ -48,36 +46,53 @@
             font-size: 14px;
         }
 
-        /* ДВЕ КОЛОНКИ */
-        .columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        @media (max-width: 768px) {
-            .columns {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .column {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .column-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #D0E41E;
+        /* ПЕРЕКЛЮЧАТЕЛЬ ВКЛАДОК */
+        .tab-container {
+            display: flex;
             margin-bottom: 25px;
-            text-align: center;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #ccc;
+        }
+
+        .tab.active {
+            background: #D0E41E;
+            color: #2c3e50;
+            box-shadow: 0 4px 12px rgba(208, 228, 30, 0.3);
+        }
+
+        /* КОНТЕНТ ВКЛАДОК */
+        .content-area {
+            position: relative;
+            min-height: 400px;
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ФОРМЫ */
         .form-group {
             margin-bottom: 20px;
         }
@@ -106,6 +121,39 @@
             background: white;
         }
 
+        .form-hint {
+            font-size: 13px;
+            color: #ccc;
+            margin-top: 6px;
+        }
+
+        /* МЕТОДЫ ОПЛАТЫ */
+        .wallet-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .wallet-type-btn {
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .wallet-type-btn.active {
+            border-color: #D0E41E;
+            background: rgba(208, 228, 30, 0.2);
+            color: #D0E41E;
+        }
+
+        /* КНОПКИ */
         .btn {
             width: 100%;
             padding: 15px;
@@ -135,40 +183,22 @@
             transform: none;
         }
 
-        /* МЕТОДЫ ОПЛАТЫ */
-        .wallet-type-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .wallet-type-btn {
-            padding: 12px;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid #34495e;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .wallet-type-btn.active {
-            border-color: #D0E41E;
-            background: rgba(208, 228, 30, 0.2);
-            color: #D0E41E;
-        }
-
         /* РЕЗУЛЬТАТ ДЕПОЗИТА */
         .result-container {
             display: none;
-            margin-top: 30px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 25px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .result-container.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .result-header {
@@ -232,6 +262,7 @@
             margin-top: 10px;
         }
 
+        /* ТАЙМЕР */
         .timer {
             font-size: 18px;
             color: #D0E41E;
@@ -246,13 +277,6 @@
         .timer.warning {
             color: #e74c3c;
             background: rgba(231, 76, 60, 0.2);
-        }
-
-        .result-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 25px;
         }
 
         /* УВЕДОМЛЕНИЯ */
@@ -277,10 +301,6 @@
             background: #e74c3c;
         }
 
-        .notification.info {
-            background: #3498db;
-        }
-
         /* СПИННЕР */
         .spinner {
             border: 3px solid #f3f3f3;
@@ -297,15 +317,8 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* ПОДСКАЗКИ */
-        .form-hint {
-            font-size: 13px;
-            color: #ccc;
-            margin-top: 6px;
-            font-style: italic;
-        }
-
-        .column-note {
+        /* ПРИМЕЧАНИЯ */
+        .note {
             margin-top: 25px;
             padding: 15px;
             background: rgba(255, 255, 255, 0.05);
@@ -314,11 +327,6 @@
             color: #ccc;
             border-left: 3px solid #D0E41E;
             text-align: center;
-        }
-
-        /* СКРЫТЫЕ ЭЛЕМЕНТЫ */
-        .hidden {
-            display: none;
         }
     </style>
 </head>
@@ -330,12 +338,16 @@
             <div class="subtitle">Secure deposits & withdrawals</div>
         </div>
 
-        <!-- Две колонки -->
-        <div class="columns">
-            <!-- Левая колонка: Депозит -->
-            <div class="column">
-                <div class="column-title">💰 Deposit Funds</div>
-                
+        <!-- Переключатель вкладок -->
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('deposit')">💰 Deposit</div>
+            <div class="tab" onclick="switchTab('withdrawal')">💸 Withdrawal</div>
+        </div>
+
+        <!-- Область контента -->
+        <div class="content-area">
+            <!-- Вкладка Депозита -->
+            <div id="depositTab" class="tab-content active">
                 <div class="form-group">
                     <label>Player Account</label>
                     <input type="text" id="account" placeholder="Enter your game account" required>
@@ -366,15 +378,13 @@
                     Get Deposit Wallet
                 </button>
                 
-                <div class="column-note">
+                <div class="note">
                     💡 Send exact amount to the provided wallet. Transaction will be processed within 5-10 minutes.
                 </div>
             </div>
 
-            <!-- Правая колонка: Вывод -->
-            <div class="column">
-                <div class="column-title">💸 Withdraw Funds</div>
-                
+            <!-- Вкладка Вывода -->
+            <div id="withdrawalTab" class="tab-content">
                 <div class="form-group">
                     <label>Player Account</label>
                     <input type="text" id="withdrawAccount" placeholder="Enter your game account" required>
@@ -400,40 +410,39 @@
                     Request Withdrawal
                 </button>
                 
-                <div class="column-note">
+                <div class="note">
                     🔒 Withdrawals are processed within 24 hours. Make sure the code is correct.
                 </div>
             </div>
-        </div>
 
-        <!-- Результат депозита (скрыт изначально) -->
-        <div id="depositResult" class="result-container">
-            <div class="result-header">
-                <div class="result-title">✅ Send Payment</div>
-                <div class="result-subtitle">Complete your deposit transaction</div>
-            </div>
-            
-            <div class="amount-display">
-                <span id="displayAmount">0</span> <span id="resultCurrency">EGP</span>
-            </div>
-            
-            <div class="wallet-display">
-                <div class="wallet-hint">Send the exact amount to this wallet:</div>
-                <div class="wallet-number" id="depositWallet" onclick="copyToClipboard(this.textContent)">
-                    Loading...
+            <!-- Результат депозита -->
+            <div id="depositResult" class="result-container">
+                <div class="result-header">
+                    <div class="result-title">✅ Send Payment</div>
+                    <div class="result-subtitle">Complete your deposit transaction</div>
                 </div>
-                <div class="wallet-hint">Click to copy • Valid for 15 minutes</div>
-            </div>
-            
-            <div class="timer" id="depositTimer">
-                ⏰ Time left: 15:00
-            </div>
-            
-            <div class="result-actions">
+                
+                <div class="amount-display">
+                    <span id="displayAmount">0</span> <span id="resultCurrency">EGP</span>
+                </div>
+                
+                <div class="wallet-display">
+                    <div class="wallet-hint">Send the exact amount to this wallet:</div>
+                    <div class="wallet-number" id="depositWallet" onclick="copyToClipboard(this.textContent)">
+                        Loading...
+                    </div>
+                    <div class="wallet-hint">Click to copy • Valid for 15 minutes</div>
+                </div>
+                
+                <div class="timer" id="depositTimer">
+                    ⏰ Time left: 15:00
+                </div>
+                
                 <button class="btn" onclick="confirmDeposit()" id="confirmBtn">
                     ✅ I Have Sent the Payment
                 </button>
-                <button class="btn" style="background: #34495e; color: white;" 
+                
+                <button class="btn" style="background: #34495e; color: white; margin-top: 15px;" 
                         onclick="cancelDeposit()">
                     ❌ Cancel Deposit
                 </button>
@@ -444,7 +453,6 @@
     <!-- Уведомление -->
     <div class="notification" id="notification"></div>
 
-    <!-- JavaScript -->
     <script>
         // ========== КОНФИГУРАЦИЯ ==========
         const API_URL = 'https://script.google.com/macros/s/AKfycbxbQoGDjvsGgr2esuqCBRAeWLuD99XPe9h2dFc-g7Rl5luOth4_LKq08caex6bg4bQ/exec';
@@ -455,7 +463,8 @@
             wallets: {},
             selectedMethod: null,
             currentDeposit: null,
-            depositTimer: null
+            depositTimer: null,
+            currentTab: 'deposit'
         };
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
@@ -482,6 +491,24 @@
             notification.className = `notification ${isError ? 'error' : 'success'}`;
             notification.style.display = 'block';
             setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        // ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
+        function switchTab(tabName) {
+            // Сохраняем текущую вкладку
+            state.currentTab = tabName;
+            
+            // Обновляем активную вкладку
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Активируем выбранную вкладку
+            document.querySelector(`.tab[onclick*="${tabName}"]`).classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Скрываем результат депозита
+            const resultDiv = document.getElementById('depositResult');
+            if (resultDiv) resultDiv.classList.remove('active');
         }
 
         // ========== ЗАГРУЗКА КОНФИГУРАЦИИ ==========
@@ -612,15 +639,15 @@
         }
 
         function showDepositResult(amount, wallet) {
-            const columns = document.querySelector('.columns');
-            const resultDiv = document.getElementById('depositResult');
+            // Скрываем все вкладки
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
+            // Показываем результат
+            const resultDiv = document.getElementById('depositResult');
             document.getElementById('displayAmount').textContent = `${amount} ${state.config?.currency || 'EGP'}`;
             document.getElementById('depositWallet').textContent = wallet;
             
-            // Скрываем колонки, показываем результат
-            if (columns) columns.style.display = 'none';
-            if (resultDiv) resultDiv.style.display = 'block';
+            if (resultDiv) resultDiv.classList.add('active');
             
             startDepositTimer();
         }
@@ -718,12 +745,12 @@
             // Сбрасываем выбор метода
             document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
             
-            // Показываем колонки, скрываем результат
-            const columns = document.querySelector('.columns');
+            // Возвращаемся к вкладке депозита
             const resultDiv = document.getElementById('depositResult');
+            const depositTab = document.getElementById('depositTab');
             
-            if (columns) columns.style.display = 'grid';
-            if (resultDiv) resultDiv.style.display = 'none';
+            if (resultDiv) resultDiv.classList.remove('active');
+            if (depositTab) depositTab.classList.add('active');
             
             // Очищаем таймер
             if (state.depositTimer) clearInterval(state.depositTimer);
