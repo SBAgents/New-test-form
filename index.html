@@ -369,128 +369,151 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">PAYMENT SYSTEM</div>
-            <div class="subtitle">Secure Deposits & Withdrawals</div>
+    <body>
+<div class="container">
+    <!-- Хедер с логотипом -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">💳</div>
+            <div class="logo-text">
+                <div class="logo-title">Payment System</div>
+                <div class="logo-subtitle">Secure deposits & withdrawals</div>
+            </div>
         </div>
-
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('deposit')">Deposit</div>
-            <div class="tab" onclick="switchTab('withdrawal')">Withdrawal</div>
-        </div>
-
-        <!-- Вкладка депозита -->
-        <div id="depositTab" class="tab-content active">
-            <div class="form-group">
-                <label>Player Account:</label>
-                <input type="text" id="playerAccount" placeholder="Enter your game account">
-            </div>
-
-            <div class="form-group">
-                <label>Amount (Min: <span id="minDeposit">100</span>):</label>
-                <input type="number" id="depositAmount" min="100" placeholder="Enter amount">
-            </div>
-
-            <div class="form-group">
-                <label>Your Wallet Number:</label>
-                <input type="text" id="playerWallet" placeholder="Your wallet number">
-            </div>
-
-            <div class="form-group">
-                <label>Select Payment Method:</label>
-                <div class="wallet-buttons" id="walletButtons">
-                    <!-- Сюда добавляются кнопки кошельков -->
-                </div>
-            </div>
-
-            <button class="btn" onclick="processDeposit()" id="depositBtn">Make Deposit</button>
-        </div>
-
-        <!-- Вкладка вывода -->
-        <div id="withdrawalTab" class="tab-content">
-            <div class="form-group">
-                <label>Player Account:</label>
-                <input type="text" id="withdrawalAccount" placeholder="Enter your game account">
-            </div>
-
-            <div class="form-group">
-                <label>Amount (Min: <span id="minWithdrawal">300</span>):</label>
-                <input type="number" id="withdrawalAmount" min="300" placeholder="Enter amount">
-            </div>
-
-            <div class="form-group">
-                <label>Your Wallet Number:</label>
-                <input type="text" id="withdrawalWallet" placeholder="Your wallet number">
-            </div>
-
-            <div class="form-group">
-                <label>Withdrawal Code:</label>
-                <input type="text" id="withdrawalCode" placeholder="Enter withdrawal code">
-            </div>
-
-            <button class="btn" onclick="processWithdrawal()" id="withdrawalBtn">Make Withdrawal</button>
+        <div class="balance">
+            <div class="balance-label">Your Balance</div>
+            <div class="balance-amount">0.00 <span class="currency">EGP</span></div>
         </div>
     </div>
 
-    <!-- Попап депозита -->
-    <div class="popup-overlay" id="depositPopup">
-        <div class="popup">
-            <h3>Deposit Instructions</h3>
-            
-            <div class="loading" id="depositLoading">
-                <div class="spinner"></div>
-                <p>Getting deposit details...</p>
+    <!-- Основной контент -->
+    <div class="main-content">
+        <!-- Левая колонка - депозит -->
+        <div class="card deposit-card">
+            <div class="card-header">
+                <div class="card-icon">💰</div>
+                <h2 class="card-title">Deposit Funds</h2>
             </div>
-
-            <div id="depositContent" style="display: none;">
-                <p style="text-align: center; margin-bottom: 15px;">Send exact amount to:</p>
+            
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Player Account</label>
+                    <input type="text" id="account" class="form-input" placeholder="Enter your game account" required>
+                </div>
                 
-                <div class="wallet-display">
-                    <div class="wallet-number" id="depositWalletNumber" onclick="copyText(this)">
-                        Loading...
-                    </div>
-                    <small style="color: #a0aec0; margin-top: 5px; display: block;">
-                        Click to copy • Valid for 15 minutes
-                    </small>
+                <div class="form-group">
+                    <label class="form-label">Amount (EGP)</label>
+                    <input type="number" id="amount" class="form-input" placeholder="Enter amount" min="100" required>
+                    <div class="form-hint">Minimum: <span id="minDeposit">100</span> EGP</div>
                 </div>
-
-                <div style="text-align: center; margin: 20px 0;">
-                    <div style="font-size: 20px; font-weight: 600; color: #00d4ff;">
-                        Amount: <span id="depositPopupAmount">0</span>
-                    </div>
-                    <small style="color: #a0aec0;">Send exactly this amount</small>
+                
+                <div class="form-group">
+                    <label class="form-label">Your Wallet Number</label>
+                    <input type="text" id="wallet" class="form-input" placeholder="Your personal wallet number" required>
                 </div>
-
-                <button class="btn" onclick="confirmDeposit()" id="confirmBtn">
-                    I have sent the payment
+                
+                <div class="form-group">
+                    <label class="form-label">Payment Method</label>
+                    <div class="wallet-methods" id="walletMethods">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading payment methods...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary btn-block" onclick="processDeposit()" id="depositBtn">
+                    Get Deposit Wallet
                 </button>
                 
-                <div class="timer" id="depositTimer"></div>
+                <div class="card-note">
+                    💡 Send exact amount to the provided wallet. Transaction will be processed within 5-10 minutes.
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- Попап вывода -->
-    <div class="popup-overlay" id="withdrawalPopup">
-        <div class="popup">
-            <h3>Processing Withdrawal</h3>
+        
+        <!-- Правая колонка - вывод -->
+        <div class="card withdrawal-card">
+            <div class="card-header">
+                <div class="card-icon">💸</div>
+                <h2 class="card-title">Withdraw Funds</h2>
+            </div>
             
-            <div class="loading">
-                <div class="spinner"></div>
-                <p id="withdrawalStatus">Processing your request...</p>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Player Account</label>
+                    <input type="text" id="withdrawAccount" class="form-input" placeholder="Enter your game account" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Amount (EGP)</label>
+                    <input type="number" id="withdrawAmount" class="form-input" placeholder="Enter amount" min="300" required>
+                    <div class="form-hint">Minimum: <span id="minWithdrawal">300</span> EGP</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Your Wallet Number</label>
+                    <input type="text" id="withdrawWallet" class="form-input" placeholder="Your personal wallet number" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Withdrawal Code</label>
+                    <input type="text" id="withdrawCode" class="form-input" placeholder="Enter withdrawal code" required>
+                </div>
+                
+                <button class="btn btn-secondary btn-block" onclick="processWithdrawal()" id="withdrawBtn">
+                    Request Withdrawal
+                </button>
+                
+                <div class="card-note">
+                    🔒 Withdrawals are processed within 24 hours. Make sure the code is correct.
+                </div>
             </div>
-
-            <div class="timer" id="withdrawalTimer" style="display: none;"></div>
-            <button class="btn" onclick="closeWithdrawalPopup()" style="display: none; margin-top: 20px;" id="closeWithdrawalBtn">
-                Close
-            </button>
         </div>
     </div>
+    
+    <!-- Результат депозита (скрыт по умолчанию) -->
+    <div id="depositResult" class="result-card" style="display: none;">
+        <div class="result-header">
+            <div class="result-icon">✅</div>
+            <h2 class="result-title">Send Payment</h2>
+        </div>
+        
+        <div class="result-body">
+            <div class="amount-display">
+                <span id="displayAmount">0</span> <span id="resultCurrency">EGP</span>
+            </div>
+            
+            <p class="result-instruction">
+                Send <strong>exactly</strong> this amount to the wallet below:
+            </p>
+            
+            <div class="wallet-display">
+                <div class="wallet-label">Wallet Number:</div>
+                <div class="wallet-number" id="depositWallet" onclick="copyToClipboard(this.textContent)">
+                    Loading...
+                </div>
+                <div class="wallet-hint">Click to copy • Valid for 15 minutes</div>
+            </div>
+            
+            <div class="timer" id="depositTimer">
+                ⏰ Time left: 15:00
+            </div>
+            
+            <div class="result-actions">
+                <button class="btn btn-success btn-block" onclick="confirmDeposit()" id="confirmBtn">
+                    ✅ I Have Sent the Payment
+                </button>
+                <button class="btn btn-outline btn-block" onclick="cancelDeposit()">
+                    ❌ Cancel Deposit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Уведомление -->
-    <div class="notification" id="notification"></div>
+<!-- Уведомление -->
+<div class="notification" id="notification"></div>
 
     <script>
         // ========== КОНФИГУРАЦИЯ ==========
