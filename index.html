@@ -5,616 +5,420 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment System</title>
     <style>
-    /* ===== БАЗОВЫЕ СТИЛИ ===== */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
-        color: #333;
-    }
-
-    /* ===== КОНТЕЙНЕР ===== */
-    .container {
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    /* ===== ХЕДЕР ===== */
-    .header {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        padding: 25px 40px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: white;
-    }
-
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .logo-icon {
-        font-size: 40px;
-    }
-
-    .logo-text {
-        line-height: 1.3;
-    }
-
-    .logo-title {
-        font-size: 28px;
-        font-weight: 700;
-    }
-
-    .logo-subtitle {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-
-    .balance {
-        text-align: right;
-        background: rgba(255, 255, 255, 0.15);
-        padding: 12px 20px;
-        border-radius: 12px;
-        backdrop-filter: blur(10px);
-    }
-
-    .balance-label {
-        font-size: 12px;
-        opacity: 0.8;
-        margin-bottom: 5px;
-    }
-
-    .balance-amount {
-        font-size: 24px;
-        font-weight: 700;
-    }
-
-    .currency {
-        font-size: 16px;
-        font-weight: 500;
-    }
-
-    /* ===== ОСНОВНОЙ КОНТЕНТ ===== */
-    .main-content {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        padding: 40px;
-    }
-
-    @media (max-width: 768px) {
-        .main-content {
-            grid-template-columns: 1fr;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
         }
-    }
 
-    /* ===== КАРТОЧКИ ===== */
-    .card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-        border: 1px solid #e9ecef;
-        transition: transform 0.3s, box-shadow 0.3s;
-    }
-
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-    }
-
-    .card-header {
-        padding: 25px 30px 20px;
-        border-bottom: 1px solid #f1f3f5;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .card-icon {
-        font-size: 32px;
-    }
-
-    .card-title {
-        font-size: 22px;
-        font-weight: 600;
-        color: #2d3436;
-    }
-
-    .card-body {
-        padding: 30px;
-    }
-
-    /* ===== ФОРМЫ ===== */
-    .form-group {
-        margin-bottom: 25px;
-    }
-
-    .form-label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 10px;
-        color: #495057;
-        font-size: 14px;
-    }
-
-    .form-input {
-        width: 100%;
-        padding: 15px;
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        font-size: 16px;
-        transition: all 0.3s;
-        background: #f8f9fa;
-    }
-
-    .form-input:focus {
-        outline: none;
-        border-color: #4f46e5;
-        background: white;
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
-    .form-hint {
-        font-size: 12px;
-        color: #868e96;
-        margin-top: 8px;
-    }
-
-    /* ===== МЕТОДЫ ОПЛАТЫ ===== */
-    .wallet-methods {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 12px;
-        margin: 15px 0;
-    }
-
-    .wallet-method {
-        padding: 15px;
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s;
-        background: white;
-    }
-
-    .wallet-method:hover {
-        border-color: #4f46e5;
-        transform: translateY(-2px);
-    }
-
-    .wallet-method.active {
-        border-color: #4f46e5;
-        background: #4f46e5;
-        color: white;
-    }
-
-    .wallet-method-icon {
-        font-size: 24px;
-        margin-bottom: 8px;
-    }
-
-    .wallet-method-name {
-        font-weight: 600;
-        font-size: 14px;
-    }
-
-    .wallet-method-desc {
-        font-size: 11px;
-        opacity: 0.7;
-        margin-top: 4px;
-    }
-
-    /* ===== КНОПКИ ===== */
-    .btn {
-        padding: 16px;
-        border: none;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .btn-block {
-        width: 100%;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
-    }
-
-    .btn-secondary {
-        background: #495057;
-        color: white;
-    }
-
-    .btn-secondary:hover {
-        background: #343a40;
-        transform: translateY(-2px);
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-    }
-
-    .btn-outline {
-        background: transparent;
-        border: 2px solid #dee2e6;
-        color: #495057;
-    }
-
-    .btn-outline:hover {
-        border-color: #adb5bd;
-        background: #f8f9fa;
-    }
-
-    .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none !important;
-    }
-
-    /* ===== КАРТОЧКА РЕЗУЛЬТАТА ===== */
-    .result-card {
-        margin: 40px;
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border-radius: 16px;
-        border-left: 6px solid #3b82f6;
-    }
-
-    .result-header {
-        padding: 25px 30px 20px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .result-icon {
-        font-size: 32px;
-    }
-
-    .result-title {
-        font-size: 22px;
-        font-weight: 600;
-        color: #1e40af;
-    }
-
-    .result-body {
-        padding: 0 30px 30px;
-    }
-
-    .amount-display {
-        font-size: 48px;
-        font-weight: 700;
-        text-align: center;
-        color: #1e40af;
-        margin: 20px 0;
-    }
-
-    .result-instruction {
-        text-align: center;
-        color: #64748b;
-        margin-bottom: 25px;
-        font-size: 16px;
-    }
-
-    .wallet-display {
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        border: 2px dashed #3b82f6;
-        margin-bottom: 25px;
-        text-align: center;
-    }
-
-    .wallet-label {
-        font-size: 14px;
-        color: #64748b;
-        margin-bottom: 10px;
-    }
-
-    .wallet-number {
-        font-size: 28px;
-        font-weight: 700;
-        color: #1e40af;
-        padding: 15px;
-        background: #f8fafc;
-        border-radius: 10px;
-        word-break: break-all;
-        cursor: pointer;
-        margin: 10px 0;
-        transition: background 0.3s;
-    }
-
-    .wallet-number:hover {
-        background: #e0f2fe;
-    }
-
-    .wallet-hint {
-        font-size: 13px;
-        color: #94a3b8;
-    }
-
-    /* ===== ТАЙМЕР ===== */
-    .timer {
-        text-align: center;
-        font-size: 18px;
-        font-weight: 600;
-        color: #059669;
-        margin: 20px 0;
-        padding: 15px;
-        background: rgba(16, 185, 129, 0.1);
-        border-radius: 10px;
-    }
-
-    .timer.warning {
-        color: #dc2626;
-        background: rgba(220, 38, 38, 0.1);
-    }
-
-    /* ===== ДЕЙСТВИЯ РЕЗУЛЬТАТА ===== */
-    .result-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    /* ===== ПРИМЕЧАНИЯ ===== */
-    .card-note {
-        margin-top: 25px;
-        padding: 15px;
-        background: #f1f5f9;
-        border-radius: 10px;
-        font-size: 14px;
-        color: #475569;
-        border-left: 4px solid #3b82f6;
-    }
-
-    /* ===== УВЕДОМЛЕНИЯ ===== */
-    .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 16px 24px;
-        border-radius: 10px;
-        color: white;
-        font-weight: 500;
-        z-index: 1000;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        display: none;
-        animation: slideInRight 0.3s;
-        max-width: 400px;
-    }
-
-    .notification.success {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    }
-
-    .notification.error {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    }
-
-    .notification.info {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    }
-
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
+        body {
+            background: linear-gradient(135deg, #042F28 0%, #0A5C4A 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
         }
-        to {
-            transform: translateX(0);
-            opacity: 1;
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-    }
 
-    /* ===== ЗАГРУЗКА ===== */
-    .loading {
-        text-align: center;
-        padding: 40px;
-        color: #64748b;
-    }
-
-    .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid #e9ecef;
-        border-top-color: #4f46e5;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 15px;
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* ===== АДАПТИВ ===== */
-    @media (max-width: 768px) {
         .header {
-            flex-direction: column;
             text-align: center;
-            gap: 20px;
-            padding: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .main-content {
-            padding: 20px;
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #D0E41E;
+            margin-bottom: 10px;
         }
 
-        .card-body {
-            padding: 20px;
+        .subtitle {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        /* ДВЕ КОЛОНКИ */
+        .columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .column-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #D0E41E;
+            margin-bottom: 25px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #D0E41E;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #D0E41E;
+            background: white;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #D0E41E;
+            color: #2c3e50;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #b8cc1a;
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* МЕТОДЫ ОПЛАТЫ */
+        .wallet-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .wallet-type-btn {
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .wallet-type-btn.active {
+            border-color: #D0E41E;
+            background: rgba(208, 228, 30, 0.2);
+            color: #D0E41E;
+        }
+
+        /* РЕЗУЛЬТАТ ДЕПОЗИТА */
+        .result-container {
+            display: none;
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #D0E41E;
+            margin-bottom: 10px;
+        }
+
+        .result-subtitle {
+            color: #ccc;
+            font-size: 14px;
         }
 
         .amount-display {
-            font-size: 36px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #D0E41E;
+            margin: 20px 0;
+            text-align: center;
+            padding: 20px;
+            background: rgba(208, 228, 30, 0.1);
+            border-radius: 10px;
+            border: 1px solid #D0E41E;
+        }
+
+        .wallet-display {
+            background: rgba(208, 228, 30, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid #D0E41E;
         }
 
         .wallet-number {
-            font-size: 22px;
-            padding: 12px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #D0E41E;
+            word-break: break-all;
+            cursor: pointer;
+            padding: 15px;
+            border: 1px dashed #D0E41E;
+            border-radius: 5px;
+            margin: 15px 0;
+            background: rgba(0, 0, 0, 0.3);
         }
 
-        .result-card {
-            margin: 20px;
+        .wallet-number:hover {
+            background: rgba(208, 228, 30, 0.1);
         }
-    }
-</style>
+
+        .wallet-hint {
+            color: #ccc;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .timer {
+            font-size: 18px;
+            color: #D0E41E;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .timer.warning {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        .result-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* УВЕДОМЛЕНИЯ */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .notification.info {
+            background: #3498db;
+        }
+
+        /* СПИННЕР */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #D0E41E;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ПОДСКАЗКИ */
+        .form-hint {
+            font-size: 13px;
+            color: #ccc;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .column-note {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #ccc;
+            border-left: 3px solid #D0E41E;
+            text-align: center;
+        }
+
+        /* СКРЫТЫЕ ЭЛЕМЕНТЫ */
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
-    <body>
-<div class="container">
-    <!-- Хедер с логотипом -->
-    <div class="header">
-        <div class="logo">
-            <div class="logo-icon">💳</div>
-            <div class="logo-text">
-                <div class="logo-title">Payment System</div>
-                <div class="logo-subtitle">Secure deposits & withdrawals</div>
-            </div>
+<body>
+    <div class="container">
+        <!-- Хедер -->
+        <div class="header">
+            <div class="logo">Payment System</div>
+            <div class="subtitle">Secure deposits & withdrawals</div>
         </div>
-        <div class="balance">
-            <div class="balance-label">Your Balance</div>
-            <div class="balance-amount">0.00 <span class="currency">EGP</span></div>
-        </div>
-    </div>
 
-    <!-- Основной контент -->
-    <div class="main-content">
-        <!-- Левая колонка - депозит -->
-        <div class="card deposit-card">
-            <div class="card-header">
-                <div class="card-icon">💰</div>
-                <h2 class="card-title">Deposit Funds</h2>
-            </div>
-            
-            <div class="card-body">
+        <!-- Две колонки -->
+        <div class="columns">
+            <!-- Левая колонка: Депозит -->
+            <div class="column">
+                <div class="column-title">💰 Deposit Funds</div>
+                
                 <div class="form-group">
-                    <label class="form-label">Player Account</label>
-                    <input type="text" id="account" class="form-input" placeholder="Enter your game account" required>
+                    <label>Player Account</label>
+                    <input type="text" id="account" placeholder="Enter your game account" required>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Amount (EGP)</label>
-                    <input type="number" id="amount" class="form-input" placeholder="Enter amount" min="100" required>
+                    <label>Amount (EGP)</label>
+                    <input type="number" id="amount" placeholder="Enter amount" min="100" required>
                     <div class="form-hint">Minimum: <span id="minDeposit">100</span> EGP</div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Your Wallet Number</label>
-                    <input type="text" id="wallet" class="form-input" placeholder="Your personal wallet number" required>
+                    <label>Your Wallet Number</label>
+                    <input type="text" id="wallet" placeholder="Your personal wallet number" required>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Payment Method</label>
-                    <div class="wallet-methods" id="walletMethods">
+                    <label>Payment Method</label>
+                    <div class="wallet-type-selector" id="walletMethods">
                         <div class="loading">
                             <div class="spinner"></div>
-                            <p>Loading payment methods...</p>
+                            <p style="text-align: center; color: #ccc;">Loading payment methods...</p>
                         </div>
                     </div>
                 </div>
                 
-                <button class="btn btn-primary btn-block" onclick="processDeposit()" id="depositBtn">
+                <button class="btn" onclick="processDeposit()" id="depositBtn">
                     Get Deposit Wallet
                 </button>
                 
-                <div class="card-note">
+                <div class="column-note">
                     💡 Send exact amount to the provided wallet. Transaction will be processed within 5-10 minutes.
                 </div>
             </div>
-        </div>
-        
-        <!-- Правая колонка - вывод -->
-        <div class="card withdrawal-card">
-            <div class="card-header">
-                <div class="card-icon">💸</div>
-                <h2 class="card-title">Withdraw Funds</h2>
-            </div>
-            
-            <div class="card-body">
+
+            <!-- Правая колонка: Вывод -->
+            <div class="column">
+                <div class="column-title">💸 Withdraw Funds</div>
+                
                 <div class="form-group">
-                    <label class="form-label">Player Account</label>
-                    <input type="text" id="withdrawAccount" class="form-input" placeholder="Enter your game account" required>
+                    <label>Player Account</label>
+                    <input type="text" id="withdrawAccount" placeholder="Enter your game account" required>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Amount (EGP)</label>
-                    <input type="number" id="withdrawAmount" class="form-input" placeholder="Enter amount" min="300" required>
+                    <label>Amount (EGP)</label>
+                    <input type="number" id="withdrawAmount" placeholder="Enter amount" min="300" required>
                     <div class="form-hint">Minimum: <span id="minWithdrawal">300</span> EGP</div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Your Wallet Number</label>
-                    <input type="text" id="withdrawWallet" class="form-input" placeholder="Your personal wallet number" required>
+                    <label>Your Wallet Number</label>
+                    <input type="text" id="withdrawWallet" placeholder="Your personal wallet number" required>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Withdrawal Code</label>
-                    <input type="text" id="withdrawCode" class="form-input" placeholder="Enter withdrawal code" required>
+                    <label>Withdrawal Code</label>
+                    <input type="text" id="withdrawCode" placeholder="Enter withdrawal code" required>
                 </div>
                 
-                <button class="btn btn-secondary btn-block" onclick="processWithdrawal()" id="withdrawBtn">
+                <button class="btn" onclick="processWithdrawal()" id="withdrawBtn">
                     Request Withdrawal
                 </button>
                 
-                <div class="card-note">
+                <div class="column-note">
                     🔒 Withdrawals are processed within 24 hours. Make sure the code is correct.
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Результат депозита (скрыт по умолчанию) -->
-    <div id="depositResult" class="result-card" style="display: none;">
-        <div class="result-header">
-            <div class="result-icon">✅</div>
-            <h2 class="result-title">Send Payment</h2>
-        </div>
-        
-        <div class="result-body">
+
+        <!-- Результат депозита (скрыт изначально) -->
+        <div id="depositResult" class="result-container">
+            <div class="result-header">
+                <div class="result-title">✅ Send Payment</div>
+                <div class="result-subtitle">Complete your deposit transaction</div>
+            </div>
+            
             <div class="amount-display">
                 <span id="displayAmount">0</span> <span id="resultCurrency">EGP</span>
             </div>
             
-            <p class="result-instruction">
-                Send <strong>exactly</strong> this amount to the wallet below:
-            </p>
-            
             <div class="wallet-display">
-                <div class="wallet-label">Wallet Number:</div>
+                <div class="wallet-hint">Send the exact amount to this wallet:</div>
                 <div class="wallet-number" id="depositWallet" onclick="copyToClipboard(this.textContent)">
                     Loading...
                 </div>
@@ -626,401 +430,386 @@
             </div>
             
             <div class="result-actions">
-                <button class="btn btn-success btn-block" onclick="confirmDeposit()" id="confirmBtn">
+                <button class="btn" onclick="confirmDeposit()" id="confirmBtn">
                     ✅ I Have Sent the Payment
                 </button>
-                <button class="btn btn-outline btn-block" onclick="cancelDeposit()">
+                <button class="btn" style="background: #34495e; color: white;" 
+                        onclick="cancelDeposit()">
                     ❌ Cancel Deposit
                 </button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Уведомление -->
-<div class="notification" id="notification"></div>
+    <!-- Уведомление -->
+    <div class="notification" id="notification"></div>
 
+    <!-- JavaScript -->
     <script>
         // ========== КОНФИГУРАЦИЯ ==========
-        const CONFIG = {
-            // URL вашей Google Cloud Function
-            cloudFunctionUrl: 'https://YOUR_REGION-YOUR_PROJECT.cloudfunctions.net',
-            endpoints: {
-                checkDeposit: '/payment-api',
-                checkWithdrawal: '/payment-api',
-                confirmDeposit: '/payment-api'
-            }
-        };
-
-        // ========== СОСТОЯНИЕ ПРИЛОЖЕНИЯ ==========
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxbQoGDjvsGgr2esuqCBRAeWLuD99XPe9h2dFc-g7Rl5luOth4_LKq08caex6bg4bQ/exec';
+        
+        // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
         let state = {
-            selectedWalletType: null,
-            depositData: null,
-            walletButtons: {},
-            userAccount: localStorage.getItem('userAccount') || ''
+            config: null,
+            wallets: {},
+            selectedMethod: null,
+            currentDeposit: null,
+            depositTimer: null
         };
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('Payment System Loading...');
+            console.log('🚀 Payment System Loading...');
             
-            // Автозаполнение аккаунта если сохранён
-            if (state.userAccount) {
-                document.getElementById('playerAccount').value = state.userAccount;
-                document.getElementById('withdrawalAccount').value = state.userAccount;
+            await loadConfig();
+            await loadWallets();
+            
+            // Загружаем сохранённый аккаунт
+            const savedAccount = localStorage.getItem('userAccount');
+            if (savedAccount) {
+                document.getElementById('account').value = savedAccount;
+                document.getElementById('withdrawAccount').value = savedAccount;
             }
             
-            // Загружаем кошельки с сервера
-            await loadWalletButtons();
-            
-            console.log('Payment System Ready');
+            console.log('✅ System Ready');
         });
 
-        // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
-        function switchTab(tabName) {
-            // Переключение активной вкладки
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.add('active');
-        }
-
-        async function loadWalletButtons() {
-            try {
-                const response = await fetch(`${CONFIG.cloudFunctionUrl}${CONFIG.endpoints.checkDeposit}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'get_wallets'
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success && data.wallets) {
-                    state.walletButtons = data.wallets;
-                    renderWalletButtons();
-                    
-                    // Выбираем первый активный кошелёк по умолчанию
-                    const firstEnabled = Object.keys(state.walletButtons).find(key => state.walletButtons[key].enabled);
-                    if (firstEnabled) {
-                        selectWallet(firstEnabled);
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to load wallets:', error);
-                // Fallback на дефолтные кошельки
-                state.walletButtons = {
-                    'vodafone': { name: 'Vodafone', enabled: true },
-                    'instapay': { name: 'InstaPay', enabled: true }
-                };
-                renderWalletButtons();
-                selectWallet('vodafone');
-            }
-        }
-
-        function renderWalletButtons() {
-            const container = document.getElementById('walletButtons');
-            container.innerHTML = '';
-            
-            Object.entries(state.walletButtons).forEach(([id, wallet]) => {
-                if (wallet.enabled) {
-                    const btn = document.createElement('div');
-                    btn.className = `wallet-btn ${state.selectedWalletType === id ? 'active' : ''}`;
-                    btn.textContent = wallet.name;
-                    btn.onclick = () => selectWallet(id);
-                    container.appendChild(btn);
-                }
-            });
-        }
-
-        function selectWallet(walletId) {
-            state.selectedWalletType = walletId;
-            renderWalletButtons();
-        }
-
+        // ========== УТИЛИТЫ ==========
         function showNotification(message, isError = false) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
-            notification.className = `notification ${isError ? 'error' : ''}`;
+            notification.className = `notification ${isError ? 'error' : 'success'}`;
             notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        // ========== ЗАГРУЗКА КОНФИГУРАЦИИ ==========
+        async function loadConfig() {
+            try {
+                const url = API_URL + '?action=get_config&t=' + Date.now();
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    state.config = result.config;
+                    document.getElementById('minDeposit').textContent = state.config.minDeposit;
+                    document.getElementById('minWithdrawal').textContent = state.config.minWithdrawal;
+                    document.getElementById('amount').min = state.config.minDeposit;
+                    document.getElementById('withdrawAmount').min = state.config.minWithdrawal;
+                }
+            } catch (error) {
+                state.config = { minDeposit: 100, minWithdrawal: 300, currency: 'EGP' };
+            }
+        }
+
+        // ========== ЗАГРУЗКА КОШЕЛЬКОВ ==========
+        async function loadWallets() {
+            try {
+                const url = API_URL + '?action=get_wallets&t=' + Date.now();
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    state.wallets = result.wallets;
+                    renderWalletMethods();
+                }
+            } catch (error) {
+                state.wallets = {
+                    vodafone: { name: 'Vodafone Cash', enabled: true, availableNumbers: ['01012345678'] },
+                    instapay: { name: 'InstaPay QR', enabled: true, availableNumbers: ['01111111111'] }
+                };
+                renderWalletMethods();
+            }
+        }
+
+        function renderWalletMethods() {
+            const container = document.getElementById('walletMethods');
+            if (!state.wallets || Object.keys(state.wallets).length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;">⚠️ No payment methods available</div>';
+                return;
+            }
             
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
-
-        function showPopup(popupId) {
-            document.getElementById(popupId).style.display = 'flex';
-        }
-
-        function hidePopup(popupId) {
-            document.getElementById(popupId).style.display = 'none';
-        }
-
-        function copyText(element) {
-            const text = element.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                showNotification('Copied to clipboard!');
+            let html = '';
+            Object.entries(state.wallets).forEach(([type, wallet]) => {
+                if (wallet.enabled) {
+                    const isActive = state.selectedMethod === type;
+                    const icon = type === 'vodafone' ? '📱' : type === 'instapay' ? '💳' : '💰';
+                    
+                    html += `
+                        <div class="wallet-type-btn ${isActive ? 'active' : ''}" 
+                             onclick="selectWalletMethod('${type}')"
+                             data-type="${type}">
+                            ${icon} ${wallet.name || type}
+                        </div>
+                    `;
+                }
             });
+            
+            container.innerHTML = html;
+        }
+
+        function selectWalletMethod(type) {
+            state.selectedMethod = type;
+            document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
+            const selectedBtn = document.querySelector(`.wallet-type-btn[data-type="${type}"]`);
+            if (selectedBtn) selectedBtn.classList.add('active');
         }
 
         // ========== ДЕПОЗИТ ==========
         async function processDeposit() {
-            const playerAccount = document.getElementById('playerAccount').value.trim();
-            const amount = document.getElementById('depositAmount').value;
-            const playerWallet = document.getElementById('playerWallet').value.trim();
+            const account = document.getElementById('account')?.value.trim() || '';
+            const amount = document.getElementById('amount')?.value || '';
+            const wallet = document.getElementById('wallet')?.value.trim() || '';
+            const method = state.selectedMethod;
             
-            // Валидация
-            if (!playerAccount || !amount || !playerWallet || !state.selectedWalletType) {
-                showNotification('Please fill all fields', true);
+            if (!account || !amount || !wallet || !method) {
+                showNotification('Please fill all fields and select payment method', true);
                 return;
             }
             
-            if (amount < 100) {
-                showNotification('Minimum deposit is 100', true);
+            if (parseInt(amount) < (state.config?.minDeposit || 100)) {
+                showNotification(`Minimum deposit is ${state.config?.minDeposit || 100} ${state.config?.currency || 'EGP'}`, true);
                 return;
             }
             
-            // Сохраняем аккаунт
-            state.userAccount = playerAccount;
-            localStorage.setItem('userAccount', playerAccount);
+            state.userAccount = account;
+            localStorage.setItem('userAccount', account);
             
-            // Показываем попап
-            showPopup('depositPopup');
+            const btn = document.getElementById('depositBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="spinner"></div> Processing...';
+            }
             
-            // Отправляем запрос на сервер
             try {
-                const response = await fetch(`${CONFIG.cloudFunctionUrl}${CONFIG.endpoints.checkDeposit}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'check_deposit',
-                        player_account: playerAccount,
+                const url = `${API_URL}?action=check_deposit&account=${encodeURIComponent(account)}&amount=${encodeURIComponent(amount)}&wallet=${encodeURIComponent(wallet)}&type=${encodeURIComponent(method)}&t=${Date.now()}`;
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    state.currentDeposit = {
+                        account: account,
                         amount: amount,
-                        player_wallet: playerWallet,
-                        wallet_type: state.selectedWalletType,
-                        timestamp: Date.now()
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Скрываем загрузку, показываем контент
-                    document.getElementById('depositLoading').style.display = 'none';
-                    document.getElementById('depositContent').style.display = 'block';
-                    
-                    // Заполняем данные
-                    document.getElementById('depositWalletNumber').textContent = data.deposit_wallet;
-                    document.getElementById('depositPopupAmount').textContent = amount;
-                    
-                    // Сохраняем данные депозита
-                    state.depositData = {
-                        playerAccount,
-                        amount,
-                        playerWallet,
-                        depositWallet: data.deposit_wallet,
-                        walletType: state.selectedWalletType
+                        wallet: wallet,
+                        type: method,
+                        depositWallet: result.wallet
                     };
                     
-                    // Запускаем таймер
-                    startDepositTimer();
+                    showDepositResult(amount, result.wallet);
+                    showNotification('Deposit wallet received!', false);
                 } else {
-                    showNotification(data.error || 'Deposit failed', true);
-                    hidePopup('depositPopup');
+                    showNotification('Error: ' + result.message, true);
                 }
             } catch (error) {
-                console.error('Deposit error:', error);
-                showNotification('Network error. Please try again.', true);
-                hidePopup('depositPopup');
+                showNotification('Error: ' + error.message, true);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Get Deposit Wallet';
+                }
             }
         }
 
+        function showDepositResult(amount, wallet) {
+            const columns = document.querySelector('.columns');
+            const resultDiv = document.getElementById('depositResult');
+            
+            document.getElementById('displayAmount').textContent = `${amount} ${state.config?.currency || 'EGP'}`;
+            document.getElementById('depositWallet').textContent = wallet;
+            
+            // Скрываем колонки, показываем результат
+            if (columns) columns.style.display = 'none';
+            if (resultDiv) resultDiv.style.display = 'block';
+            
+            startDepositTimer();
+        }
+
         function startDepositTimer() {
-            let timeLeft = 15 * 60; // 15 минут в секундах
+            let timeLeft = 15 * 60;
             const timerElement = document.getElementById('depositTimer');
             
-            const timer = setInterval(() => {
+            if (state.depositTimer) clearInterval(state.depositTimer);
+            
+            state.depositTimer = setInterval(() => {
+                timeLeft--;
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
+                timerElement.textContent = `⏰ Time left: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 
-                timerElement.textContent = `Time left: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-                timeLeft--;
+                if (timeLeft < 60) {
+                    timerElement.classList.add('warning');
+                }
                 
-                if (timeLeft < 0) {
-                    clearInterval(timer);
-                    timerElement.textContent = 'Time expired!';
-                    timerElement.style.color = '#e53e3e';
+                if (timeLeft <= 0) {
+                    clearInterval(state.depositTimer);
+                    timerElement.textContent = '⏰ Time expired!';
                     document.getElementById('confirmBtn').disabled = true;
+                    showNotification('Deposit time expired. Please start over.', true);
                 }
             }, 1000);
         }
 
         async function confirmDeposit() {
-            if (!state.depositData) return;
+            console.log('✅ User confirmed payment');
+            
+            if (!state.currentDeposit) {
+                showNotification('No deposit to confirm', true);
+                return;
+            }
             
             const confirmBtn = document.getElementById('confirmBtn');
-            confirmBtn.disabled = true;
-            confirmBtn.textContent = 'Sending confirmation...';
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Processing...';
+            }
             
             try {
-                const response = await fetch(`${CONFIG.cloudFunctionUrl}${CONFIG.endpoints.confirmDeposit}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'confirm_deposit',
-                        ...state.depositData,
-                        timestamp: Date.now()
-                    })
+                const params = new URLSearchParams({
+                    action: 'confirm_deposit',
+                    account: state.currentDeposit.account,
+                    amount: state.currentDeposit.amount,
+                    wallet: state.currentDeposit.wallet,
+                    depositWallet: state.currentDeposit.depositWallet,
+                    type: state.currentDeposit.type,
+                    t: Date.now()
                 });
                 
-                const data = await response.json();
+                const confirmUrl = `${API_URL}?${params.toString()}`;
+                const response = await fetch(confirmUrl);
+                const result = await response.json();
                 
-                if (data.success) {
-                    showNotification('Deposit confirmed successfully!');
+                if (result.status === 'success') {
+                    showNotification('✅ Payment confirmed! Processing...', false);
                     
-                    // Очищаем форму
-                    document.getElementById('depositAmount').value = '';
-                    document.getElementById('playerWallet').value = '';
+                    const timerElement = document.getElementById('depositTimer');
+                    if (timerElement) {
+                        timerElement.textContent = '✅ Payment confirmed';
+                        timerElement.className = 'timer';
+                    }
                     
-                    // Закрываем попап через 3 секунды
                     setTimeout(() => {
-                        hidePopup('depositPopup');
-                        confirmBtn.disabled = false;
-                        confirmBtn.textContent = 'I have sent the payment';
-                    }, 3000);
+                        resetDepositForm();
+                    }, 2000);
+                    
                 } else {
-                    showNotification(data.error || 'Confirmation failed', true);
-                    confirmBtn.disabled = false;
-                    confirmBtn.textContent = 'I have sent the payment';
+                    showNotification('⚠️ Confirmation failed: ' + (result.message || 'Server error'), true);
+                    if (confirmBtn) confirmBtn.disabled = false;
                 }
+                
             } catch (error) {
-                console.error('Confirm error:', error);
-                showNotification('Network error', true);
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = 'I have sent the payment';
+                console.error('❌ Confirmation error:', error);
+                showNotification('❌ Network error. Please try again.', true);
+                if (confirmBtn) confirmBtn.disabled = false;
             }
+        }
+
+        function cancelDeposit() {
+            showNotification('Deposit cancelled', false);
+            resetDepositForm();
+        }
+
+        function resetDepositForm() {
+            // Сбрасываем поля
+            document.getElementById('amount').value = '';
+            document.getElementById('wallet').value = '';
+            state.selectedMethod = null;
+            
+            // Сбрасываем выбор метода
+            document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Показываем колонки, скрываем результат
+            const columns = document.querySelector('.columns');
+            const resultDiv = document.getElementById('depositResult');
+            
+            if (columns) columns.style.display = 'grid';
+            if (resultDiv) resultDiv.style.display = 'none';
+            
+            // Очищаем таймер
+            if (state.depositTimer) clearInterval(state.depositTimer);
+            state.currentDeposit = null;
+            
+            // Восстанавливаем кнопки
+            document.getElementById('confirmBtn').disabled = false;
+            document.getElementById('confirmBtn').textContent = '✅ I Have Sent the Payment';
+            
+            const timerElement = document.getElementById('depositTimer');
+            if (timerElement) {
+                timerElement.textContent = '⏰ Time left: 15:00';
+                timerElement.className = 'timer';
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('✅ Copied to clipboard!');
+            });
         }
 
         // ========== ВЫВОД ==========
         async function processWithdrawal() {
-            const playerAccount = document.getElementById('withdrawalAccount').value.trim();
-            const amount = document.getElementById('withdrawalAmount').value;
-            const playerWallet = document.getElementById('withdrawalWallet').value.trim();
-            const withdrawalCode = document.getElementById('withdrawalCode').value.trim();
+            const account = document.getElementById('withdrawAccount')?.value.trim() || '';
+            const amount = document.getElementById('withdrawAmount')?.value || '';
+            const wallet = document.getElementById('withdrawWallet')?.value.trim() || '';
+            const code = document.getElementById('withdrawCode')?.value.trim() || '';
             
-            // Валидация
-            if (!playerAccount || !amount || !playerWallet || !withdrawalCode) {
+            if (!account || !amount || !wallet || !code) {
                 showNotification('Please fill all fields', true);
                 return;
             }
             
-            if (amount < 300) {
-                showNotification('Minimum withdrawal is 300', true);
+            if (parseInt(amount) < (state.config?.minWithdrawal || 300)) {
+                showNotification(`Minimum withdrawal is ${state.config?.minWithdrawal || 300} ${state.config?.currency || 'EGP'}`, true);
                 return;
             }
             
-            // Сохраняем аккаунт
-            state.userAccount = playerAccount;
-            localStorage.setItem('userAccount', playerAccount);
+            if (code.length < 4) {
+                showNotification('Withdrawal code must be at least 4 characters', true);
+                return;
+            }
             
-            // Показываем попап
-            showPopup('withdrawalPopup');
+            const withdrawBtn = document.getElementById('withdrawBtn');
+            const originalText = withdrawBtn?.textContent || 'Request Withdrawal';
+            
+            if (withdrawBtn) {
+                withdrawBtn.disabled = true;
+                withdrawBtn.textContent = 'Processing...';
+            }
             
             try {
-                const response = await fetch(`${CONFIG.cloudFunctionUrl}${CONFIG.endpoints.checkWithdrawal}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'check_withdrawal',
-                        player_account: playerAccount,
-                        amount: amount,
-                        player_wallet: playerWallet,
-                        withdrawal_code: withdrawalCode,
-                        timestamp: Date.now()
-                    })
+                const params = new URLSearchParams({
+                    action: 'withdraw',
+                    account: account,
+                    amount: amount,
+                    wallet: wallet,
+                    code: code,
+                    t: Date.now()
                 });
                 
-                const data = await response.json();
+                const url = `${API_URL}?${params.toString()}`;
+                const response = await fetch(url);
+                const result = await response.json();
                 
-                const statusElement = document.getElementById('withdrawalStatus');
-                const closeBtn = document.getElementById('closeWithdrawalBtn');
-                const timerElement = document.getElementById('withdrawalTimer');
-                
-                if (data.success) {
-                    statusElement.textContent = 'Withdrawal request accepted!';
-                    statusElement.style.color = '#38a169';
-                    
-                    // Показываем таймер и кнопку закрытия
-                    timerElement.style.display = 'block';
-                    closeBtn.style.display = 'block';
+                if (result.status === 'success') {
+                    showNotification('✅ Withdrawal request submitted!', false);
                     
                     // Очищаем форму
-                    document.getElementById('withdrawalAmount').value = '';
-                    document.getElementById('withdrawalCode').value = '';
+                    document.getElementById('withdrawAmount').value = '';
+                    document.getElementById('withdrawWallet').value = '';
+                    document.getElementById('withdrawCode').value = '';
                     
-                    // Таймер авто-закрытия
-                    startAutoCloseTimer(5, timerElement, 'withdrawalPopup');
                 } else {
-                    statusElement.textContent = data.error || 'Withdrawal failed';
-                    statusElement.style.color = '#e53e3e';
-                    closeBtn.style.display = 'block';
-                    timerElement.style.display = 'block';
-                    startAutoCloseTimer(3, timerElement, 'withdrawalPopup');
+                    showNotification(`❌ ${result.message || 'Withdrawal failed'}`, true);
                 }
+                
             } catch (error) {
-                console.error('Withdrawal error:', error);
-                document.getElementById('withdrawalStatus').textContent = 'Network error';
-                document.getElementById('withdrawalStatus').style.color = '#e53e3e';
-                document.getElementById('closeWithdrawalBtn').style.display = 'block';
-            }
-        }
-
-        function startAutoCloseTimer(minutes, timerElement, popupId) {
-            let timeLeft = minutes * 60;
-            
-            const timer = setInterval(() => {
-                const mins = Math.floor(timeLeft / 60);
-                const secs = timeLeft % 60;
-                
-                timerElement.textContent = `Closing in ${mins}:${secs.toString().padStart(2, '0')}`;
-                timeLeft--;
-                
-                if (timeLeft < 0) {
-                    clearInterval(timer);
-                    hidePopup(popupId);
-                    
-                    // Сброс состояния
-                    timerElement.style.display = 'none';
-                    document.getElementById('closeWithdrawalBtn').style.display = 'none';
-                    document.getElementById('withdrawalStatus').textContent = 'Processing your request...';
-                    document.getElementById('withdrawalStatus').style.color = '';
+                showNotification('❌ Network error. Please try again.', true);
+            } finally {
+                if (withdrawBtn) {
+                    withdrawBtn.disabled = false;
+                    withdrawBtn.textContent = originalText;
                 }
-            }, 1000);
-        }
-
-        function closeWithdrawalPopup() {
-            hidePopup('withdrawalPopup');
-            
-            // Сброс состояния
-            document.getElementById('withdrawalTimer').style.display = 'none';
-            document.getElementById('closeWithdrawalBtn').style.display = 'none';
-            document.getElementById('withdrawalStatus').textContent = 'Processing your request...';
-            document.getElementById('withdrawalStatus').style.color = '';
+            }
         }
     </script>
 </body>
