@@ -1042,8 +1042,12 @@
             }
             
             // Обновляем активную кнопку языка
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === lang.toUpperCase()) {
+                    btn.classList.add('active');
+                }
+            });
             
             // Применяем переводы
             applyTranslations(lang);
@@ -1059,24 +1063,6 @@
                     element.textContent = trans[key];
                 }
             });
-            
-            // Обновляем плейсхолдеры
-            updatePlaceholders(lang);
-        }
-
-        function updatePlaceholders(lang) {
-            const trans = translations[lang];
-            const placeholders = {
-                'account': 'Enter your game account',
-                'amount': 'Enter amount',
-                'wallet': 'Your personal wallet number',
-                'withdrawAccount': 'Enter your game account',
-                'withdrawAmount': 'Enter amount',
-                'withdrawWallet': 'Your personal wallet number',
-                'withdrawCode': 'Enter withdrawal code'
-            };
-            
-            // Здесь можно добавить переводы плейсхолдеров при необходимости
         }
 
         function translate(key, params = {}) {
@@ -1143,7 +1129,7 @@
         }
 
         function translateHint(text) {
-            // Простая логика перевода подсказок (можно расширить)
+            // Простая логика перевода подсказок
             if (state.currentLanguage === 'ru') {
                 const ruHints = {
                     'Player Account': 'Игровой Аккаунт',
