@@ -4,556 +4,879 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment System</title>
-    <style>
-        :root {
-            --primary-bg: linear-gradient(135deg, #042F28 0%, #0A5C4A 100%);
-            --accent-color: #D0E41E;
-            --text-color: white;
-            --secondary-text: #ccc;
-            --input-bg: rgba(255, 255, 255, 0.9);
-            --input-border: #34495e;
-            --card-bg: rgba(255, 255, 255, 0.1);
-            --border-color: rgba(255, 255, 255, 0.2);
-        }
+<style>
+    :root {
+        --primary-bg: linear-gradient(135deg, #042F28 0%, #0A5C4A 100%);
+        --accent-color: #D0E41E;
+        --text-color: white;
+        --secondary-text: #ccc;
+        --input-bg: rgba(255, 255, 255, 0.9);
+        --input-border: #34495e;
+        --card-bg: rgba(255, 255, 255, 0.1);
+        --border-color: rgba(255, 255, 255, 0.2);
+        --loading-green: #0A5C4A;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Arial', sans-serif;
+    }
 
-        body {
-            background: var(--primary-bg);
-            color: var(--text-color);
-            min-height: 100vh;
-            padding: 20px;
-            direction: ltr;
-        }
+    body {
+        background: var(--primary-bg);
+        color: var(--text-color);
+        min-height: 100vh;
+        padding: 20px;
+        direction: ltr;
+        transition: margin-right 0.3s ease;
+    }
 
-        body[dir="rtl"] {
-            direction: rtl;
-            text-align: right;
-        }
+    body.console-active {
+        margin-right: 350px;
+    }
 
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-        }
+    body[dir="rtl"] {
+        direction: rtl;
+        text-align: right;
+    }
 
-        /* ЯЗЫКОВОЙ ПЕРЕКЛЮЧАТЕЛЬ */
-        .language-selector {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 5px;
-            z-index: 100;
-        }
+    body[dir="rtl"].console-active {
+        margin-right: 0;
+        margin-left: 350px;
+    }
 
-        .lang-btn {
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
+    /* ЗАГРУЗОЧНЫЙ ЭКРАН */
+    #loadingScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--primary-bg);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(10px);
+    }
 
-        .lang-btn:hover, .lang-btn.active {
-            background: var(--accent-color);
-            color: #2c3e50;
-        }
+    .loading-container {
+        text-align: center;
+        animation: fadeIn 0.5s ease;
+    }
 
-        /* ХЕДЕР */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-top: 10px;
-        }
+    .logo-spin {
+        font-size: 64px;
+        font-weight: 900;
+        margin-bottom: 30px;
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        align-items: center;
+    }
 
-        .logo {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--accent-color);
-            margin-bottom: 10px;
-        }
+    .spin-letter {
+        font-size: 64px;
+        font-weight: 900;
+        color: white;
+        display: inline-block;
+        position: relative;
+    }
 
-        .subtitle {
-            color: var(--secondary-text);
-            font-size: 14px;
-        }
+    .spin-letter:nth-child(1) { animation: spinLetter1 2s ease-in-out infinite; }
+    .spin-letter:nth-child(2) { animation: spinLetter2 2s ease-in-out infinite 0.2s; }
+    .spin-letter:nth-child(3) { animation: spinLetter3 2s ease-in-out infinite 0.4s; }
+    .spin-letter:nth-child(4) { animation: spinLetter4 2s ease-in-out infinite 0.6s; }
 
-        /* ВКЛАДКИ */
-        .tab-container {
-            display: flex;
-            margin-bottom: 25px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 6px;
-            border: 1px solid var(--border-color);
-        }
+    @keyframes spinLetter1 {
+        0%, 40%, 60%, 100% { transform: translateY(0) rotateX(0); opacity: 1; }
+        50% { transform: translateY(-30px) rotateX(90deg); opacity: 0; }
+    }
 
-        .tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            color: var(--secondary-text);
-        }
+    @keyframes spinLetter2 {
+        0%, 40%, 60%, 100% { transform: translateY(0) rotateX(0); opacity: 1; }
+        50% { transform: translateY(-30px) rotateX(90deg); opacity: 0; }
+    }
 
-        .tab.active {
-            background: var(--accent-color);
-            color: #2c3e50;
-            box-shadow: 0 4px 12px rgba(208, 228, 30, 0.3);
-        }
+    @keyframes spinLetter3 {
+        0%, 40%, 60%, 100% { transform: translateY(0) rotateX(0); opacity: 1; }
+        50% { transform: translateY(-30px) rotateX(90deg); opacity: 0; }
+    }
 
-        /* ОБЛАСТЬ КОНТЕНТА */
-        .content-area {
-            position: relative;
-            min-height: 450px;
-        }
+    @keyframes spinLetter4 {
+        0%, 40%, 60%, 100% { transform: translateY(0) rotateX(0); opacity: 1; }
+        50% { transform: translateY(-30px) rotateX(90deg); opacity: 0; }
+    }
 
-        .tab-content {
-            display: none;
+    .better-text {
+        font-size: 64px;
+        font-weight: 900;
+        color: var(--loading-green);
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .loading-subtitle {
+        margin-top: 20px;
+        color: var(--secondary-text);
+        font-size: 16px;
+    }
+
+    @keyframes fadeIn {
+        from {
             opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.3s, transform 0.3s;
+            transform: translateY(20px);
         }
-
-        .tab-content.active {
-            display: block;
+        to {
             opacity: 1;
             transform: translateY(0);
         }
+    }
 
-        /* ФОРМЫ */
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
+    /* КОНСОЛЬ ДЕБАГА */
+    #debugConsole {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 350px;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.95);
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        overflow-y: auto;
+        z-index: 9998;
+        border-left: 2px solid var(--accent-color);
+        display: none;
+        padding: 10px;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+    }
 
-        .form-label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
+    body[dir="rtl"] #debugConsole {
+        right: auto;
+        left: 0;
+        border-left: none;
+        border-right: 2px solid var(--accent-color);
+        box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+    }
 
-        .info-icon {
-            margin-left: 8px;
-            color: var(--secondary-text);
-            cursor: help;
-            font-size: 16px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 1px solid var(--secondary-text);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
+    .console-header {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 10px;
+        background: rgba(0, 0, 0, 0.7);
+        border-bottom: 1px solid #333;
+        margin-bottom: 5px;
+    }
 
-        body[dir="rtl"] .info-icon {
-            margin-left: 0;
-            margin-right: 8px;
-        }
+    .console-title {
+        color: var(--accent-color);
+        font-weight: bold;
+    }
 
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--input-border);
-            border-radius: 8px;
-            background: var(--input-bg);
-            color: #2c3e50;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
+    .console-close {
+        color: #ff5555;
+        cursor: pointer;
+    }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            background: white;
-        }
+    .log-entry {
+        padding: 2px 5px;
+        border-bottom: 1px solid #222;
+        word-break: break-all;
+    }
 
-        .form-hint {
-            font-size: 13px;
-            color: var(--secondary-text);
-            margin-top: 6px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+    .log-time {
+        color: #888;
+        margin-right: 10px;
+    }
 
-        /* МЕТОДЫ ОПЛАТЫ */
-        .wallet-type-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 15px 0;
-        }
+    .log-info {
+        color: #4af;
+    }
 
-        .wallet-type-btn {
-            padding: 12px;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid var(--input-border);
-            border-radius: 8px;
-            color: var(--text-color);
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+    .log-error {
+        color: #f44;
+    }
 
-        .wallet-type-btn.active {
-            border-color: var(--accent-color);
-            background: rgba(208, 228, 30, 0.2);
-            color: var(--accent-color);
-        }
+    .log-success {
+        color: #4f4;
+    }
 
-        /* КНОПКИ */
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: var(--accent-color);
-            color: #2c3e50;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
+    .log-warning {
+        color: #ff4;
+    }
 
-        .btn:hover {
-            background: #b8cc1a;
-            transform: translateY(-2px);
-        }
+    .container {
+        max-width: 500px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s, transform 0.5s;
+    }
 
-        .btn:active {
-            transform: translateY(0);
-        }
+    .container.loaded {
+        opacity: 1;
+        transform: translateY(0);
+    }
 
-        .btn:disabled {
-            background: #7f8c8d;
-            cursor: not-allowed;
-            transform: none;
-        }
+    /* ЯЗЫКОВОЙ ПЕРЕКЛЮЧАТЕЛЬ */
+    .language-selector {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 5px;
+        z-index: 100;
+    }
 
-        /* ПОПАП РЕЗУЛЬТАТА ДЕПОЗИТА */
-        .popup-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 999;
-            backdrop-filter: blur(5px);
-        }
+    body[dir="rtl"] .language-selector {
+        right: auto;
+        left: 20px;
+    }
 
-        .popup-overlay.active {
-            display: block;
-        }
+    .lang-btn {
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--accent-color);
+        color: var(--accent-color);
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+    }
 
+    .lang-btn:hover, .lang-btn.active {
+        background: var(--accent-color);
+        color: #2c3e50;
+    }
+
+    /* ХЕДЕР */
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-top: 10px;
+    }
+
+    .logo {
+        font-size: 28px;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: var(--secondary-text);
+        font-size: 14px;
+    }
+
+    /* ВКЛАДКИ */
+    .tab-container {
+        display: flex;
+        margin-bottom: 25px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 6px;
+        border: 1px solid var(--border-color);
+    }
+
+    .tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        color: var(--secondary-text);
+    }
+
+    .tab.active {
+        background: var(--accent-color);
+        color: #2c3e50;
+        box-shadow: 0 4px 12px rgba(208, 228, 30, 0.3);
+    }
+
+    /* ОБЛАСТЬ КОНТЕНТА */
+    .content-area {
+        position: relative;
+        min-height: 450px;
+    }
+
+    .tab-content {
+        display: none;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .tab-content.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ФОРМЫ */
+    .form-group {
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: var(--accent-color);
+    }
+
+    .info-icon {
+        margin-left: 8px;
+        color: var(--secondary-text);
+        cursor: help;
+        font-size: 16px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1px solid var(--secondary-text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    body[dir="rtl"] .info-icon {
+        margin-left: 0;
+        margin-right: 8px;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--input-border);
+        border-radius: 8px;
+        background: var(--input-bg);
+        color: #2c3e50;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        background: white;
+    }
+
+    .form-hint {
+        font-size: 13px;
+        color: var(--secondary-text);
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* МЕТОДЫ ОПЛАТЫ */
+    .wallet-type-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .wallet-type-btn {
+        padding: 12px;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid var(--input-border);
+        border-radius: 8px;
+        color: var(--text-color);
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .wallet-type-btn.active {
+        border-color: var(--accent-color);
+        background: rgba(208, 228, 30, 0.2);
+        color: var(--accent-color);
+    }
+
+    /* КНОПКИ */
+    .btn {
+        width: 100%;
+        padding: 15px;
+        background: var(--accent-color);
+        color: #2c3e50;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn:hover {
+        background: #b8cc1a;
+        transform: translateY(-2px);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn:disabled {
+        background: #7f8c8d;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* ПОПАП РЕЗУЛЬТАТА ДЕПОЗИТА */
+    .popup-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 999;
+        backdrop-filter: blur(5px);
+    }
+
+    .popup-overlay.active {
+        display: block;
+    }
+
+         /* ПОПАП РЕЗУЛЬТАТА ДЕПОЗИТА */
+    .deposit-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--card-bg);
+        border: 2px solid var(--accent-color);
+        border-radius: 15px;
+        padding: 25px;
+        z-index: 1000;
+        width: 90%;
+        max-width: 450px;
+        max-height: 90vh;
+        overflow-y: auto;
+        backdrop-filter: blur(20px);
+        display: none;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        box-sizing: border-box;
+    }
+
+    .deposit-popup.active {
+        display: flex;
+        flex-direction: column;
+        animation: popupAppear 0.3s ease-out;
+    }
+
+    .popup-header {
+        text-align: center;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+    }
+
+    .popup-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    .popup-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin-bottom: 8px;
+    }
+
+    .popup-subtitle {
+        color: var(--secondary-text);
+        font-size: 14px;
+    }
+
+    .amount-display {
+        font-size: 36px;
+        font-weight: 800;
+        text-align: center;
+        color: var(--accent-color);
+        margin: 15px 0;
+        padding: 20px;
+        background: rgba(208, 228, 30, 0.15);
+        border-radius: 12px;
+        border: 2px solid var(--accent-color);
+        letter-spacing: 1px;
+        flex-shrink: 0;
+    }
+
+    .wallet-display {
+        background: rgba(208, 228, 30, 0.2);
+        padding: 15px;
+        border-radius: 12px;
+        margin: 15px 0;
+        text-align: center;
+        border: 1px solid var(--accent-color);
+        flex-shrink: 0;
+    }
+
+    .wallet-number {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--accent-color);
+        word-break: break-all;
+        cursor: pointer;
+        padding: 12px;
+        border: 1px dashed var(--accent-color);
+        border-radius: 8px;
+        margin: 10px 0;
+        background: rgba(0, 0, 0, 0.3);
+        transition: background 0.3s;
+    }
+
+    .wallet-hint {
+        color: var(--secondary-text);
+        font-size: 13px;
+        margin-top: 8px;
+    }
+
+    .timer {
+        font-size: 16px;
+        color: var(--accent-color);
+        text-align: center;
+        margin: 15px 0;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .warning-box {
+        background: rgba(231, 76, 60, 0.15);
+        border: 1px solid #e74c3c;
+        border-radius: 10px;
+        padding: 12px;
+        margin: 15px 0;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .warning-title {
+        color: #e74c3c;
+        font-weight: bold;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .warning-text {
+        color: var(--secondary-text);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    /* Кнопки в попапе */
+    .deposit-popup .btn {
+        margin-top: 10px;
+        padding: 14px;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    /* Мобильная адаптация попапа */
+    @media (max-width: 768px) {
         .deposit-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--card-bg);
-            border: 2px solid var(--accent-color);
-            border-radius: 15px;
-            padding: 30px;
-            z-index: 1000;
-            width: 90%;
-            max-width: 450px;
-            backdrop-filter: blur(20px);
-            display: none;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .deposit-popup.active {
-            display: block;
-            animation: popupAppear 0.3s ease-out;
-        }
-
-        @keyframes popupAppear {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -60%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
-        }
-
-        .popup-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .popup-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .popup-title {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--accent-color);
-            margin-bottom: 10px;
-        }
-
-        .popup-subtitle {
-            color: var(--secondary-text);
-            font-size: 16px;
-        }
-
-        .amount-display {
-            font-size: 42px;
-            font-weight: 800;
-            text-align: center;
-            color: var(--accent-color);
-            margin: 25px 0;
-            padding: 25px;
-            background: rgba(208, 228, 30, 0.15);
-            border-radius: 12px;
-            border: 2px solid var(--accent-color);
-            letter-spacing: 1px;
-        }
-
-        .wallet-display {
-            background: rgba(208, 228, 30, 0.2);
             padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-            text-align: center;
-            border: 1px solid var(--accent-color);
+            max-width: 95%;
+            max-height: 85vh;
         }
-
-        .wallet-number {
+        
+        .popup-title {
             font-size: 22px;
-            font-weight: bold;
-            color: var(--accent-color);
-            word-break: break-all;
-            cursor: pointer;
+        }
+        
+        .amount-display {
+            font-size: 32px;
             padding: 15px;
-            border: 1px dashed var(--accent-color);
-            border-radius: 8px;
-            margin: 15px 0;
-            background: rgba(0, 0, 0, 0.3);
-            transition: background 0.3s;
         }
-
-        .wallet-number:hover {
-            background: rgba(208, 228, 30, 0.1);
+        
+        .wallet-number {
+            font-size: 16px;
+            padding: 10px;
         }
-
-        .wallet-hint {
-            color: var(--secondary-text);
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        /* ТАЙМЕР */
-        .timer {
-            font-size: 18px;
-            color: var(--accent-color);
-            text-align: center;
-            margin: 20px 0;
-            font-weight: bold;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-        }
-
-        .timer.warning {
-            color: #e74c3c;
-            background: rgba(231, 76, 60, 0.2);
-        }
-
-        /* ПРЕДУПРЕЖДЕНИЕ */
-        .warning-box {
-            background: rgba(231, 76, 60, 0.15);
-            border: 1px solid #e74c3c;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .warning-title {
-            color: #e74c3c;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .warning-text {
-            color: var(--secondary-text);
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        /* ПОПАП ПОДСКАЗОК */
-        .hint-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--card-bg);
-            border: 2px solid var(--accent-color);
-            border-radius: 15px;
-            padding: 25px;
-            z-index: 1001;
-            width: 90%;
-            max-width: 400px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .hint-popup.active {
-            display: block;
-        }
-
-        .hint-content {
-            margin-bottom: 20px;
-        }
-
-        .hint-title {
-            color: var(--accent-color);
-            font-size: 20px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .hint-text {
-            color: var(--text-color);
-            line-height: 1.5;
+        
+        .deposit-popup .btn {
+            padding: 12px;
             font-size: 15px;
         }
+    }
 
-        /* УВЕДОМЛЕНИЯ */
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #27ae60;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            z-index: 998;
-            display: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            text-align: center;
-            min-width: 300px;
-            max-width: 90%;
-        }
-
-        .notification.error {
-            background: #e74c3c;
-        }
-
-        /* СПИННЕР */
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--accent-color);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 10px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* ПРИМЕЧАНИЯ */
-        .note {
-            margin-top: 25px;
+    @media (max-width: 480px) {
+        .deposit-popup {
             padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+        }
+        
+        .popup-icon {
+            font-size: 32px;
+        }
+        
+        .popup-title {
+            font-size: 20px;
+        }
+        
+        .amount-display {
+            font-size: 28px;
+        }
+        
+        .wallet-number {
             font-size: 14px;
-            color: var(--secondary-text);
-            border-left: 3px solid var(--accent-color);
-            text-align: center;
         }
+        
+        .timer {
+            font-size: 14px;
+            padding: 10px;
+        }
+    }
 
-        body[dir="rtl"] .note {
+    /* ПОПАП ПОДСКАЗОК */
+    .hint-popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--card-bg);
+        border: 2px solid var(--accent-color);
+        border-radius: 15px;
+        padding: 25px;
+        z-index: 1001;
+        width: 90%;
+        max-width: 400px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .hint-popup.active {
+        display: block;
+    }
+
+    .hint-content {
+        margin-bottom: 20px;
+    }
+
+    .hint-title {
+        color: var(--accent-color);
+        font-size: 20px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .hint-text {
+        color: var(--text-color);
+        line-height: 1.5;
+        font-size: 15px;
+    }
+
+    /* УВЕДОМЛЕНИЯ */
+    .notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #27ae60;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        z-index: 998;
+        display: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        text-align: center;
+        min-width: 300px;
+        max-width: 90%;
+    }
+
+    .notification.error {
+        background: #e74c3c;
+    }
+
+    /* СПИННЕР */
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid var(--accent-color);
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 10px auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* ПРИМЕЧАНИЯ */
+    .note {
+        margin-top: 25px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--secondary-text);
+        border-left: 3px solid var(--accent-color);
+        text-align: center;
+    }
+
+    body[dir="rtl"] .note {
+        border-left: none;
+        border-right: 3px solid var(--accent-color);
+    }
+
+    /* МОБИЛЬНАЯ АДАПТАЦИЯ */
+    @media (max-width: 1100px) {
+        body.console-active {
+            margin-right: 300px;
+        }
+        
+        body[dir="rtl"].console-active {
+            margin-left: 300px;
+        }
+        
+        #debugConsole {
+            width: 300px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        body.console-active {
+            margin-right: 250px;
+        }
+        
+        body[dir="rtl"].console-active {
+            margin-left: 250px;
+        }
+        
+        #debugConsole {
+            width: 250px;
+            font-size: 11px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        body.console-active {
+            margin-right: 0 !important;
+            margin-left: 0 !important;
+        }
+        
+        #debugConsole {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: auto;
+            width: 100%;
+            height: 200px;
+            top: auto;
             border-left: none;
-            border-right: 3px solid var(--accent-color);
+            border-top: 2px solid var(--accent-color);
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
         }
+        
+        body[dir="rtl"] #debugConsole {
+            left: 0;
+            right: auto;
+            border-right: none;
+        }
+        
+        .container {
+            padding: 15px;
+        }
+        
+        .language-selector {
+            position: relative;
+            top: 0;
+            right: 0;
+            left: 0;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .deposit-popup {
+            padding: 20px;
+            width: 95%;
+        }
+        
+        .amount-display {
+            font-size: 36px;
+            padding: 20px;
+        }
+        
+        .wallet-number {
+            font-size: 18px;
+            padding: 12px;
+        }
+        
+        .spin-letter, .better-text {
+            font-size: 48px;
+        }
+    }
 
-        /* МОБИЛЬНАЯ АДАПТАЦИЯ */
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .language-selector {
-                position: relative;
-                top: 0;
-                right: 0;
-                justify-content: center;
-                margin-bottom: 15px;
-            }
-            
-            .deposit-popup {
-                padding: 20px;
-                width: 95%;
-            }
-            
-            .amount-display {
-                font-size: 36px;
-                padding: 20px;
-            }
-            
-            .wallet-number {
-                font-size: 18px;
-                padding: 12px;
-            }
+    @media (max-width: 480px) {
+        .wallet-type-selector {
+            grid-template-columns: 1fr;
         }
-
-        @media (max-width: 480px) {
-            .wallet-type-selector {
-                grid-template-columns: 1fr;
-            }
-            
-            .amount-display {
-                font-size: 32px;
-            }
+        
+        .amount-display {
+            font-size: 32px;
         }
-    </style>
+        
+        .spin-letter, .better-text {
+            font-size: 36px;
+        }
+    }
+</style>
 </head>
 <body>
+    <!-- Экран загрузки -->
+    <div id="loadingScreen">
+        <div class="loading-container">
+            <div class="logo-spin">
+                <span class="spin-letter">S</span>
+                <span class="spin-letter">P</span>
+                <span class="spin-letter">I</span>
+                <span class="spin-letter">N</span>
+                <span class="better-text">BETTER</span>
+            </div>
+            <div class="loading-subtitle">Loading payment system...</div>
+        </div>
+    </div>
+
+    <!-- Консоль дебага -->
+    <div id="debugConsole">
+        <div class="console-header">
+            <div class="console-title">Payment System Debug Console</div>
+            <div class="console-close" onclick="toggleConsole()">[X]</div>
+        </div>
+        <div id="consoleContent"></div>
+    </div>
+
     <!-- Языковой переключатель -->
     <div class="language-selector">
         <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
@@ -562,7 +885,7 @@
         <button class="lang-btn" onclick="changeLanguage('ar')">AR</button>
     </div>
 
-    <div class="container">
+    <div class="container" id="mainContainer">
         <!-- Хедер -->
         <div class="header">
             <div class="logo" data-i18n="title">Payment System</div>
@@ -758,6 +1081,9 @@
         // ========== КОНФИГУРАЦИЯ ==========
         const API_URL = 'https://script.google.com/macros/s/AKfycbxbQoGDjvsGgr2esuqCBRAeWLuD99XPe9h2dFc-g7Rl5luOth4_LKq08caex6bg4bQ/exec';
         
+        // ========== НАСТРОЙКИ ==========
+        const DEBUG_MODE = false; // Измените на false чтобы отключить консоль
+        
         // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
         let state = {
             config: null,
@@ -767,22 +1093,145 @@
             depositTimer: null,
             currentTab: 'deposit',
             currentLanguage: 'en',
-            savedWallet: localStorage.getItem('userWallet') || ''
+            savedWallet: localStorage.getItem('userWallet') || '',
+            isLoaded: false
         };
+
+        // ========== СИСТЕМА ЛОГИРОВАНИЯ ==========
+function log(type, message, data = null) {
+    if (!DEBUG_MODE) return;
+    
+    const time = new Date().toLocaleTimeString();
+    
+    // 1. Логирование в HTML консоль
+    try {
+        const entry = document.createElement('div');
+        entry.className = `log-entry log-${type}`;
+        
+        let logMessage = `<span class="log-time">[${time}]</span> ${message}`;
+        if (data) {
+            logMessage += ` <span style="color:#888">${JSON.stringify(data)}</span>`;
+        }
+        
+        entry.innerHTML = logMessage;
+        const consoleContent = document.getElementById('consoleContent');
+        if (consoleContent) {
+            consoleContent.appendChild(entry);
+            
+            // Прокрутка вниз
+            const debugConsole = document.getElementById('debugConsole');
+            if (debugConsole) debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+    } catch (e) {
+        // Игнорируем ошибки HTML консоли
+    }
+    
+    // 2. Логирование в браузерную консоль
+    try {
+        if (typeof console !== 'undefined' && console.log) {
+            const logMsg = `[${time}] ${type.toUpperCase()}: ${message}`;
+            if (data !== null && data !== undefined) {
+                console.log(logMsg, data);
+            } else {
+                console.log(logMsg);
+            }
+        }
+    } catch (e) {
+        // Игнорируем ошибки браузерной консоли
+    }
+}
+
+        function toggleConsole() {
+            const console = document.getElementById('debugConsole');
+            console.style.display = console.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Показать консоль если включен дебаг
+        if (DEBUG_MODE) {
+            document.getElementById('debugConsole').style.display = 'block';
+            log('info', 'Debug console initialized');
+        }
+
+        // ========== ЗАГРУЗОЧНЫЙ ЭКРАН ==========
+        function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const mainContainer = document.getElementById('mainContainer');
+    
+    // Останавливаем анимацию букв
+    document.querySelectorAll('.spin-letter').forEach(letter => {
+        letter.style.animation = 'none';
+    });
+    
+    loadingScreen.style.opacity = '0';
+    loadingScreen.style.transition = 'opacity 0.5s ease';
+    
+    setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        mainContainer.classList.add('loaded');
+        state.isLoaded = true;
+        log('success', 'Loading screen hidden, main content shown');
+    }, 500);
+}
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        document.addEventListener('DOMContentLoaded', async function() {
+            log('info', 'Payment System Loading...');
+            log('info', `API URL: ${API_URL}`);
+            log('info', `Debug mode: ${DEBUG_MODE ? 'ENABLED' : 'DISABLED'}`);
+            
+            // Определяем язык браузера
+            detectLanguage();
+            
+            try {
+                // Загружаем конфигурацию
+                log('info', 'Loading configuration...');
+                await loadConfig();
+                
+                // Загружаем кошельки
+                log('info', 'Loading wallets...');
+                await loadWallets();
+                
+                // Загружаем сохранённый аккаунт и кошелёк
+                const savedAccount = localStorage.getItem('userAccount');
+                if (savedAccount) {
+                    document.getElementById('account').value = savedAccount;
+                    document.getElementById('withdrawAccount').value = savedAccount;
+                    log('info', 'Saved account loaded from localStorage');
+                }
+                
+                // Загружаем сохранённый кошелёк
+                if (state.savedWallet) {
+                    document.getElementById('wallet').value = state.savedWallet;
+                    document.getElementById('withdrawWallet').value = state.savedWallet;
+                    log('info', 'Saved wallet loaded from localStorage');
+                }
+                
+                log('success', 'System initialization complete');
+                
+                // Задержка для показа анимации загрузки (минимум 3 секунды)
+                setTimeout(() => {
+                    hideLoadingScreen();
+                }, 3000);
+                
+            } catch (error) {
+                log('error', 'Initialization failed', error);
+                showNotification('network_error', true);
+                
+                // Всё равно скрываем загрузку через 3 секунды
+                setTimeout(() => {
+                    hideLoadingScreen();
+                }, 3000);
+            }
+        });
 
         // ========== МНОГОЯЗЫЧНОСТЬ ==========
         const translations = {
             en: {
-                // Общие
                 'title': 'Payment System',
                 'subtitle': 'Secure deposits & withdrawals',
                 'currency': 'EGP',
-                
-                // Вкладки
                 'deposit.tab': '💰 Deposit',
                 'withdrawal.tab': '💸 Withdrawal',
-                
-                // Депозит
                 'deposit.account_label': 'Player Account',
                 'deposit.amount_label': 'Amount',
                 'deposit.wallet_label': 'Your Wallet Number',
@@ -792,8 +1241,6 @@
                 'deposit.get_wallet_button': 'Get Deposit Wallet',
                 'deposit.loading_methods': 'Loading payment methods...',
                 'deposit.note': '💡 Send exact amount to the provided wallet. Transaction will be processed within 5-10 minutes.',
-                
-                // Вывод
                 'withdrawal.account_label': 'Player Account',
                 'withdrawal.amount_label': 'Amount',
                 'withdrawal.wallet_label': 'Your Wallet Number',
@@ -801,8 +1248,6 @@
                 'withdrawal.min_amount': 'Minimum:',
                 'withdrawal.request_button': 'Request Withdrawal',
                 'withdrawal.note': '🔒 Withdrawals are processed within 24 hours. Make sure the code is correct.',
-                
-                // Попап
                 'popup.title': 'Send Payment',
                 'popup.subtitle': 'Complete your deposit transaction',
                 'popup.wallet_hint': 'Send the exact amount to this wallet:',
@@ -812,11 +1257,7 @@
                 'popup.warning_text': 'If you submit requests without actually sending money, funds will NOT be credited to your account. Multiple fake requests may result in temporary suspension of deposit privileges.',
                 'popup.confirm_button': '✅ I Have Sent the Payment',
                 'popup.cancel_button': '❌ Cancel Deposit',
-                
-                // Подсказки
                 'hint.understand_button': 'I Understand',
-                
-                // Уведомления
                 'notification.copied': '✅ Copied to clipboard!',
                 'notification.deposit_received': 'Deposit wallet received!',
                 'notification.confirmed': '✅ Payment confirmed! Processing...',
@@ -990,32 +1431,6 @@
             }
         };
 
-        // ========== ИНИЦИАЛИЗАЦИЯ ==========
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Payment System Loading...');
-            
-            // Определяем язык браузера
-            detectLanguage();
-            
-            await loadConfig();
-            await loadWallets();
-            
-            // Загружаем сохранённый аккаунт и кошелёк
-            const savedAccount = localStorage.getItem('userAccount');
-            if (savedAccount) {
-                document.getElementById('account').value = savedAccount;
-                document.getElementById('withdrawAccount').value = savedAccount;
-            }
-            
-            // Загружаем сохранённый кошелёк
-            if (state.savedWallet) {
-                document.getElementById('wallet').value = state.savedWallet;
-                document.getElementById('withdrawWallet').value = state.savedWallet;
-            }
-            
-            console.log('✅ System Ready');
-        });
-
         // ========== ЯЗЫКОВЫЕ ФУНКЦИИ ==========
         function detectLanguage() {
             const browserLang = navigator.language || navigator.userLanguage;
@@ -1026,10 +1441,14 @@
             else if (browserLang.startsWith('ar')) lang = 'ar';
             
             changeLanguage(lang);
+            log('info', `Browser language detected: ${browserLang}, using: ${lang}`);
         }
 
         function changeLanguage(lang) {
-            if (!translations[lang]) lang = 'en';
+            if (!translations[lang]) {
+                lang = 'en';
+                log('warning', `Language ${lang} not found, defaulting to English`);
+            }
             
             state.currentLanguage = lang;
             document.documentElement.lang = lang;
@@ -1037,6 +1456,7 @@
             // Для арабского меняем направление текста
             if (lang === 'ar') {
                 document.body.setAttribute('dir', 'rtl');
+                log('info', 'RTL direction applied for Arabic');
             } else {
                 document.body.removeAttribute('dir');
             }
@@ -1051,6 +1471,7 @@
             
             // Применяем переводы
             applyTranslations(lang);
+            log('info', `Language changed to: ${lang}`);
         }
 
         function applyTranslations(lang) {
@@ -1121,6 +1542,8 @@
             
             document.getElementById('hintOverlay').classList.add('active');
             document.getElementById('hintPopup').classList.add('active');
+            
+            log('info', `Hint shown: ${hintId}`);
         }
 
         function closeHint() {
@@ -1136,15 +1559,7 @@
                     'Amount': 'Сумма',
                     'Your Wallet Number': 'Ваш Номер Кошелька',
                     'Payment Method': 'Способ Оплаты',
-                    'Withdrawal Code': 'Код Вывода',
-                    'Enter your game account username or ID. This is required to credit funds to your account.': 'Введите имя пользователя или ID вашего игрового аккаунта. Это необходимо для зачисления средств на ваш счёт.',
-                    'Enter the amount you want to deposit. Minimum deposit is 100 EGP.': 'Введите сумму для пополнения. Минимальное пополнение - 100 EGP.',
-                    'Enter your personal wallet number (Vodafone Cash, InstaPay, etc.). This wallet will be used for withdrawals.': 'Введите номер вашего личного кошелька (Vodafone Cash, InstaPay и т.д.). Этот кошелёк будет использоваться для выводов.',
-                    'Select the payment method you want to use for this deposit.': 'Выберите способ оплаты для этого пополнения.',
-                    'Enter your game account username or ID. This is required to process your withdrawal.': 'Введите имя пользователя или ID вашего игрового аккаунта. Это необходимо для обработки вашего вывода.',
-                    'Enter the amount you want to withdraw. Minimum withdrawal is 300 EGP.': 'Введите сумму для вывода. Минимальный вывод - 300 EGP.',
-                    'Enter your personal wallet number where you want to receive the withdrawal.': 'Введите номер вашего личного кошелька, куда вы хотите получить вывод.',
-                    'Enter the withdrawal code provided by the game or system. This code is required for security.': 'Введите код вывода, предоставленный игрой или системой. Этот код требуется для безопасности.'
+                    'Withdrawal Code': 'Код Вывода'
                 };
                 return ruHints[text] || text;
             }
@@ -1159,10 +1574,14 @@
             notification.className = `notification ${isError ? 'error' : 'success'}`;
             notification.style.display = 'block';
             setTimeout(() => notification.style.display = 'none', 3000);
+            
+            log(isError ? 'error' : 'success', `Notification: ${message}`);
         }
 
         // ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
         function switchTab(tabName) {
+            if (!state.isLoaded) return;
+            
             state.currentTab = tabName;
             
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -1170,6 +1589,8 @@
             
             document.querySelector(`.tab[onclick*="${tabName}"]`).classList.add('active');
             document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            log('info', `Tab switched to: ${tabName}`);
         }
 
         // ========== СОХРАНЕНИЕ КОШЕЛЬКА ==========
@@ -1181,6 +1602,7 @@
                     document.getElementById('withdrawWallet').value = state.savedWallet;
                 }
                 showNotification('saved_wallet_used');
+                log('info', 'Saved wallet applied to form');
             }
         }
 
@@ -1188,8 +1610,12 @@
         async function loadConfig() {
             try {
                 const url = API_URL + '?action=get_config&t=' + Date.now();
+                log('info', `Fetching config from: ${url}`);
+                
                 const response = await fetch(url);
                 const result = await response.json();
+                
+                log('info', 'Config response received', result);
                 
                 if (result.status === 'success') {
                     state.config = result.config;
@@ -1197,9 +1623,15 @@
                     document.getElementById('minWithdrawal').textContent = state.config.minWithdrawal;
                     document.getElementById('amount').min = state.config.minDeposit;
                     document.getElementById('withdrawAmount').min = state.config.minWithdrawal;
+                    
+                    log('success', 'Configuration loaded successfully', state.config);
+                } else {
+                    log('error', 'Failed to load config', result);
+                    throw new Error(result.message || 'Config load failed');
                 }
             } catch (error) {
                 state.config = { minDeposit: 100, minWithdrawal: 300, currency: 'EGP' };
+                log('warning', 'Using default config due to error', error);
             }
         }
 
@@ -1207,12 +1639,28 @@
         async function loadWallets() {
             try {
                 const url = API_URL + '?action=get_wallets&t=' + Date.now();
+                log('info', `Fetching wallets from: ${url}`);
+                
                 const response = await fetch(url);
                 const result = await response.json();
+                
+                log('info', 'Wallets response received', { 
+                    status: result.status,
+                    source: result.source,
+                    count: result.wallets ? Object.keys(result.wallets).length : 0
+                });
                 
                 if (result.status === 'success') {
                     state.wallets = result.wallets;
                     renderWalletMethods();
+                    
+                    log('success', 'Wallets loaded successfully', {
+                        count: Object.keys(state.wallets).length,
+                        types: Object.keys(state.wallets)
+                    });
+                } else {
+                    log('error', 'Failed to load wallets', result);
+                    throw new Error(result.message || 'Wallets load failed');
                 }
             } catch (error) {
                 state.wallets = {
@@ -1220,6 +1668,7 @@
                     instapay: { name: 'InstaPay QR', enabled: true, availableNumbers: ['01111111111'] }
                 };
                 renderWalletMethods();
+                log('warning', 'Using test wallets due to error', error);
             }
         }
 
@@ -1227,12 +1676,16 @@
             const container = document.getElementById('walletMethods');
             if (!state.wallets || Object.keys(state.wallets).length === 0) {
                 container.innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;">⚠️ No payment methods available</div>';
+                log('warning', 'No payment methods available to render');
                 return;
             }
             
             let html = '';
+            let enabledCount = 0;
+            
             Object.entries(state.wallets).forEach(([type, wallet]) => {
                 if (wallet.enabled) {
+                    enabledCount++;
                     const isActive = state.selectedMethod === type;
                     const icon = type === 'vodafone' ? '📱' : type === 'instapay' ? '💳' : '💰';
                     
@@ -1247,6 +1700,7 @@
             });
             
             container.innerHTML = html;
+            log('info', `Rendered ${enabledCount} payment methods`);
         }
 
         function selectWalletMethod(type) {
@@ -1254,17 +1708,24 @@
             document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
             const selectedBtn = document.querySelector(`.wallet-type-btn[data-type="${type}"]`);
             if (selectedBtn) selectedBtn.classList.add('active');
+            
+            log('info', `Payment method selected: ${type}`);
         }
 
         // ========== ДЕПОЗИТ ==========
         async function processDeposit() {
+            if (!state.isLoaded) return;
+            
             const account = document.getElementById('account')?.value.trim() || '';
             const amount = document.getElementById('amount')?.value || '';
             const wallet = document.getElementById('wallet')?.value.trim() || '';
             const method = state.selectedMethod;
             
+            log('info', 'Processing deposit request', { account, amount, wallet, method });
+            
             if (!account || !amount || !wallet || !method) {
                 showNotification(!account || !amount || !wallet ? 'fill_all_fields' : 'select_method', true);
+                log('warning', 'Deposit validation failed: missing fields');
                 return;
             }
             
@@ -1273,6 +1734,7 @@
                     amount: state.config?.minDeposit || 100,
                     currency: state.config?.currency || 'EGP'
                 });
+                log('warning', `Deposit amount too low: ${amount}`);
                 return;
             }
             
@@ -1282,6 +1744,8 @@
             localStorage.setItem('userAccount', account);
             localStorage.setItem('userWallet', wallet);
             
+            log('info', 'User data saved to localStorage');
+            
             const btn = document.getElementById('depositBtn');
             if (btn) {
                 btn.disabled = true;
@@ -1290,8 +1754,12 @@
             
             try {
                 const url = `${API_URL}?action=check_deposit&account=${encodeURIComponent(account)}&amount=${encodeURIComponent(amount)}&wallet=${encodeURIComponent(wallet)}&type=${encodeURIComponent(method)}&t=${Date.now()}`;
+                log('info', `Sending deposit request to: ${url}`);
+                
                 const response = await fetch(url);
                 const result = await response.json();
+                
+                log('info', 'Deposit response received', result);
                 
                 if (result.status === 'success') {
                     state.currentDeposit = {
@@ -1304,11 +1772,14 @@
                     
                     showDepositResult(amount, result.wallet);
                     showNotification('deposit_received');
+                    log('success', 'Deposit processed successfully', { depositWallet: result.wallet });
                 } else {
                     showNotification('server_error', true, { message: result.message });
+                    log('error', 'Deposit failed on server', result);
                 }
             } catch (error) {
                 showNotification('network_error', true);
+                log('error', 'Network error during deposit', error);
             } finally {
                 if (btn) {
                     btn.disabled = false;
@@ -1326,12 +1797,14 @@
             document.getElementById('depositPopup').classList.add('active');
             
             startDepositTimer();
+            log('info', 'Deposit result shown in popup', { amount, wallet });
         }
 
         function closeDepositPopup() {
             document.getElementById('popupOverlay').classList.remove('active');
             document.getElementById('depositPopup').classList.remove('active');
             resetDepositForm();
+            log('info', 'Deposit popup closed');
         }
 
         function startDepositTimer() {
@@ -1339,6 +1812,8 @@
             const timerElement = document.getElementById('depositTimer');
             
             if (state.depositTimer) clearInterval(state.depositTimer);
+            
+            log('info', 'Deposit timer started (15 minutes)');
             
             state.depositTimer = setInterval(() => {
                 timeLeft--;
@@ -1355,6 +1830,7 @@
                     timerElement.textContent = '⏰ ' + translate('popup.time_left') + ' 00:00';
                     document.getElementById('confirmBtn').disabled = true;
                     showNotification('time_expired', true);
+                    log('warning', 'Deposit timer expired');
                 }
             }, 1000);
         }
@@ -1362,6 +1838,7 @@
         async function confirmDeposit() {
             if (!state.currentDeposit) {
                 showNotification('no_deposit', true);
+                log('warning', 'Confirm deposit called but no current deposit');
                 return;
             }
             
@@ -1370,6 +1847,8 @@
                 confirmBtn.disabled = true;
                 confirmBtn.textContent = translate('popup.confirm_button');
             }
+            
+            log('info', 'Confirming deposit', state.currentDeposit);
             
             try {
                 const params = new URLSearchParams({
@@ -1383,8 +1862,12 @@
                 });
                 
                 const confirmUrl = `${API_URL}?${params.toString()}`;
+                log('info', `Sending confirmation to: ${confirmUrl}`);
+                
                 const response = await fetch(confirmUrl);
                 const result = await response.json();
+                
+                log('info', 'Confirmation response received', result);
                 
                 if (result.status === 'success') {
                     showNotification('confirmed');
@@ -1395,6 +1878,8 @@
                         timerElement.className = 'timer';
                     }
                     
+                    log('success', 'Deposit confirmed successfully');
+                    
                     setTimeout(() => {
                         closeDepositPopup();
                     }, 2000);
@@ -1402,12 +1887,14 @@
                 } else {
                     showNotification('confirmation_failed', true, { message: result.message });
                     if (confirmBtn) confirmBtn.disabled = false;
+                    log('error', 'Deposit confirmation failed', result);
                 }
                 
             } catch (error) {
                 console.error('❌ Confirmation error:', error);
                 showNotification('network_error', true);
                 if (confirmBtn) confirmBtn.disabled = false;
+                log('error', 'Network error during confirmation', error);
             }
         }
 
@@ -1416,7 +1903,10 @@
             state.selectedMethod = null;
             document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
             
-            if (state.depositTimer) clearInterval(state.depositTimer);
+            if (state.depositTimer) {
+                clearInterval(state.depositTimer);
+                log('info', 'Deposit timer cleared');
+            }
             state.currentDeposit = null;
             
             document.getElementById('confirmBtn').disabled = false;
@@ -1427,23 +1917,31 @@
                 timerElement.textContent = '⏰ ' + translate('popup.time_left') + ' 15:00';
                 timerElement.className = 'timer';
             }
+            
+            log('info', 'Deposit form reset');
         }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 showNotification('copied');
+                log('info', `Text copied to clipboard: ${text}`);
             });
         }
 
         // ========== ВЫВОД ==========
         async function processWithdrawal() {
+            if (!state.isLoaded) return;
+            
             const account = document.getElementById('withdrawAccount')?.value.trim() || '';
             const amount = document.getElementById('withdrawAmount')?.value || '';
             const wallet = document.getElementById('withdrawWallet')?.value.trim() || '';
             const code = document.getElementById('withdrawCode')?.value.trim() || '';
             
+            log('info', 'Processing withdrawal request', { account, amount, wallet, code });
+            
             if (!account || !amount || !wallet || !code) {
                 showNotification('fill_all_fields', true);
+                log('warning', 'Withdrawal validation failed: missing fields');
                 return;
             }
             
@@ -1452,17 +1950,21 @@
                     amount: state.config?.minWithdrawal || 300,
                     currency: state.config?.currency || 'EGP'
                 });
+                log('warning', `Withdrawal amount too low: ${amount}`);
                 return;
             }
             
             if (code.length < 4) {
                 showNotification('code_length', true);
+                log('warning', `Withdrawal code too short: ${code.length} chars`);
                 return;
             }
             
             // Сохраняем кошелёк
             state.savedWallet = wallet;
             localStorage.setItem('userWallet', wallet);
+            
+            log('info', 'Wallet saved to localStorage');
             
             const withdrawBtn = document.getElementById('withdrawBtn');
             const originalText = withdrawBtn?.textContent || translate('withdrawal.request_button');
@@ -1483,8 +1985,12 @@
                 });
                 
                 const url = `${API_URL}?${params.toString()}`;
+                log('info', `Sending withdrawal request to: ${url}`);
+                
                 const response = await fetch(url);
                 const result = await response.json();
+                
+                log('info', 'Withdrawal response received', result);
                 
                 if (result.status === 'success') {
                     showNotification('withdrawal_submitted');
@@ -1493,12 +1999,16 @@
                     document.getElementById('withdrawAmount').value = '';
                     document.getElementById('withdrawCode').value = '';
                     
+                    log('success', 'Withdrawal request submitted successfully');
+                    
                 } else {
-                    showNotification('withdrawal_failed', true, { message: result.message });
+                    showNotification(`❌ ${result.message || 'Withdrawal failed'}`, true);
+                    log('error', 'Withdrawal failed on server', result);
                 }
                 
             } catch (error) {
-                showNotification('network_error', true);
+                showNotification('❌ Network error. Please try again.', true);
+                log('error', 'Network error during withdrawal', error);
             } finally {
                 if (withdrawBtn) {
                     withdrawBtn.disabled = false;
