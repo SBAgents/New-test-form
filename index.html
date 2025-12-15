@@ -6,7 +6,6 @@
     <title>Payment System</title>
     <link rel="preconnect" href="https://script.google.com">
     <link rel="preconnect" href="https://api.telegram.org">
-    <link rel="preload" as="font" type="font/woff2" href="..." crossorigin>
 <style>
     :root {
     --primary-bg: linear-gradient(135deg, #042F28 0%, #0A5C4A 100%);
@@ -810,11 +809,7 @@
             right: auto;
             border-right: none;
         }
-        /*
-        .container {
-            padding: 15px;
-        }
-        */
+        
         .language-selector {
             position: relative;
             top: 0;
@@ -1084,29 +1079,11 @@
     <div class="notification" id="notification"></div>
 
     <script>
+// ========== КОНФИГУРАЦИЯ ==========
+const API_URL = 'https://script.google.com/macros/s/AKfycbwCxcwH348zdrceSwwQFGryW7uaSto9hmsXDcBg5yUWsghqk3LpK9dQqPGpVYHA3tdhFA/exec';
+const DEBUG_MODE = false;
 
-        function hideLoadingScreen() {
-    const loadingScreen = document.getElementById('loadingScreen');
-    const mainContainer = document.getElementById('mainContainer');
-    
-    if (!loadingScreen || !mainContainer) return;
-    
-    // Быстрое переключение
-    loadingScreen.style.display = 'none';
-    mainContainer.style.display = 'block';
-    mainContainer.style.opacity = '1';
-    
-    state.isLoaded = true;
-    log('success', 'Page loaded');
-}
-
-        // ========== КОНФИГУРАЦИЯ ==========
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxbQoGDjvsGgr2esuqCBRAeWLuD99XPe9h2dFc-g7Rl5luOth4_LKq08caex6bg4bQ/exec';
-        
-        // ========== НАСТРОЙКИ ==========
-        const DEBUG_MODE = false; // Измените на false чтобы отключить консоль
-        
-        // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+// ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
 let state = {
     config: null,
     wallets: {},
@@ -1118,26 +1095,13 @@ let state = {
     savedWallet: localStorage.getItem('userWallet') || '',
     isLoaded: false
 };
-        
-        // Предзагружаем данные сразу при загрузке страницы
-window.addEventListener('load', function() {
-    // Можно предзагрузить что-то для следующего действия пользователя
-    fetch(API_URL + '?action=get_wallets&preload=true').catch(() => {});
-});
-        
-        // Немедленная проверка элементов
-console.log('=== INITIAL CHECK ===');
-console.log('Loading screen exists:', !!document.getElementById('loadingScreen'));
-console.log('Main container exists:', !!document.getElementById('mainContainer'));
-console.log('Body:', document.body);
 
-        // ========== СИСТЕМА ЛОГИРОВАНИЯ ==========
+// ========== СИСТЕМА ЛОГИРОВАНИЯ ==========
 function log(type, message, data = null) {
     if (!DEBUG_MODE) return;
     
     const time = new Date().toLocaleTimeString();
     
-    // 1. Логирование в HTML консоль
     try {
         const entry = document.createElement('div');
         entry.className = `log-entry log-${type}`;
@@ -1151,16 +1115,11 @@ function log(type, message, data = null) {
         const consoleContent = document.getElementById('consoleContent');
         if (consoleContent) {
             consoleContent.appendChild(entry);
-            
-            // Прокрутка вниз
             const debugConsole = document.getElementById('debugConsole');
             if (debugConsole) debugConsole.scrollTop = debugConsole.scrollHeight;
         }
-    } catch (e) {
-        // Игнорируем ошибки HTML консоли
-    }
+    } catch (e) {}
     
-    // 2. Логирование в браузерную консоль
     try {
         if (typeof console !== 'undefined' && console.log) {
             const logMsg = `[${time}] ${type.toUpperCase()}: ${message}`;
@@ -1170,34 +1129,43 @@ function log(type, message, data = null) {
                 console.log(logMsg);
             }
         }
-    } catch (e) {
-        // Игнорируем ошибки браузерной консоли
-    }
+    } catch (e) {}
 }
 
-        function toggleConsole() {
-            const console = document.getElementById('debugConsole');
-            console.style.display = console.style.display === 'none' ? 'block' : 'none';
-        }
+function toggleConsole() {
+    const console = document.getElementById('debugConsole');
+    console.style.display = console.style.display === 'none' ? 'block' : 'none';
+}
 
-        // Показать консоль если включен дебаг
-        if (DEBUG_MODE) {
-            document.getElementById('debugConsole').style.display = 'block';
-            log('info', 'Debug console initialized');
-        }
+if (DEBUG_MODE) {
+    document.getElementById('debugConsole').style.display = 'block';
+    log('info', 'Debug console initialized');
+}
 
-        // ========== ИНИЦИАЛИЗАЦИЯ ==========
-        document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Loading screen:', document.getElementById('loadingScreen'));
-    console.log('Main container:', document.getElementById('mainContainer'));
-    console.log('Container display:', document.getElementById('mainContainer')?.style.display);
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const mainContainer = document.getElementById('mainContainer');
     
-    log('info', 'Payment System Loading...');
+    if (!loadingScreen || !mainContainer) return;
     
-    // Определяем язык браузера
+    loadingScreen.style.display = 'none';
+    mainContainer.style.display = 'block';
+    mainContainer.style.opacity = '1';
+    
+    state.isLoaded = true;
+    log('success', 'Page loaded');
+}
+
+window.addEventListener('load', function() {
+    fetch(API_URL + '?action=get_wallets&preload=true').catch(() => {});
+});
+
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Payment System Loading...');
+    
     detectLanguage();
     
-    // 1. Сразу загружаем сохранённые данные из localStorage
     const savedAccount = localStorage.getItem('userAccount');
     if (savedAccount) {
         document.getElementById('account').value = savedAccount;
@@ -1215,22 +1183,18 @@ function log(type, message, data = null) {
 
     log('info', 'Antispam system initialized');
     
-    // 2. Запускаем ВСЕ загрузки ПАРАЛЛЕЛЬНО
     const startTime = Date.now();
     
     try {
-        // Параллельная загрузка конфигурации И кошельков
         const [configResult, walletsResult] = await Promise.allSettled([
             loadConfig(),
             loadWallets()
         ]);
         
-        // Обработка результатов
         if (configResult.status === 'fulfilled') {
             log('success', 'Configuration loaded');
         } else {
             log('error', 'Config load failed', configResult.reason);
-            // Используем дефолтные настройки
             state.config = { minDeposit: 100, minWithdrawal: 300, currency: 'EGP' };
             document.getElementById('minDeposit').textContent = '100';
             document.getElementById('minWithdrawal').textContent = '300';
@@ -1242,571 +1206,671 @@ function log(type, message, data = null) {
             log('success', 'Wallets loaded');
         } else {
             log('error', 'Wallets load failed', walletsResult.reason);
-            // Если не загрузились кошельки, всё равно покажем страницу
         }
         
         log('success', `All data loaded in ${Date.now() - startTime}ms`);
         state.isLoaded = true;
         
-        // 3. Динамическое скрытие экрана загрузки
         const elapsedTime = Date.now() - startTime;
-        const minLoadingTime = 2000; // 2 секунды вместо 3
+        const minLoadingTime = 2000;
         
         if (elapsedTime >= minLoadingTime) {
-            // Если уже прошло 2+ секунды, скрываем сразу
             hideLoadingScreen();
         } else {
-            // Ждём оставшееся время до 2 секунд
             setTimeout(hideLoadingScreen, minLoadingTime - elapsedTime);
         }
         
     } catch (error) {
         log('error', 'Unexpected error during initialization', error);
         showNotification('network_error', true);
-        
-        // В случае ошибки скрываем через 2 секунды
         setTimeout(hideLoadingScreen, 2000);
     }
 });
-        //==========ОШИБКА ПРИ ЗАГРУЗКЕ КОШЕЛЬКОВ==========
-        function showWalletLoadingError() {
-    const container = document.getElementById('walletMethods');
-    container.innerHTML = `
-        <div style="text-align: center; padding: 15px; color: #e74c3c;">
-            ⚠️ <span data-i18n="deposit.loading_error">Payment methods loading failed</span>
-            <div style="margin-top: 10px;">
-                <button onclick="retryLoadWallets()" style="
-                    background: var(--accent-color);
-                    color: #2c3e50;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 14px;
-                ">
-                    <span data-i18n="deposit.retry_button">Retry</span>
-                </button>
-            </div>
-        </div>
-    `;
-    // Обновляем переводы
-    applyTranslations(state.currentLanguage);
+
+// ========== МНОГОЯЗЫЧНОСТЬ ==========
+const translations = {
+    en: {
+        'title': 'Payment System',
+        'subtitle': 'Secure deposits & withdrawals',
+        'currency': 'EGP',
+        'deposit.tab': '💰 Deposit',
+        'withdrawal.tab': '💸 Withdrawal',
+        'deposit.account_label': 'Player Account',
+        'deposit.amount_label': 'Amount',
+        'deposit.wallet_label': 'Your Wallet Number',
+        'deposit.method_label': 'Payment Method',
+        'deposit.min_amount': 'Minimum:',
+        'deposit.use_saved': 'Use saved wallet',
+        'deposit.get_wallet_button': 'Get Deposit Wallet',
+        'deposit.loading_methods': 'Loading payment methods...',
+        'deposit.note': '💡 Send exact amount to the provided wallet. Transaction will be processed within 5-10 minutes.',
+        'withdrawal.account_label': 'Player Account',
+        'withdrawal.amount_label': 'Amount',
+        'withdrawal.wallet_label': 'Your Wallet Number',
+        'withdrawal.code_label': 'Withdrawal Code',
+        'withdrawal.min_amount': 'Minimum:',
+        'withdrawal.request_button': 'Request Withdrawal',
+        'withdrawal.note': '🔒 Withdrawals are processed within 24 hours. Make sure the code is correct.',
+        'popup.title': 'Send Payment',
+        'popup.subtitle': 'Complete your deposit transaction',
+        'popup.wallet_hint': 'Send the exact amount to this wallet:',
+        'popup.copy_hint': 'Click to copy • Valid for 15 minutes',
+        'popup.time_left': 'Time left:',
+        'popup.warning_title': 'Important Notice',
+        'popup.warning_text': 'If you submit requests without actually sending money, funds will NOT be credited to your account. Multiple fake requests may result in temporary suspension of deposit privileges.',
+        'popup.confirm_button': '✅ I Have Sent the Payment',
+        'popup.cancel_button': '❌ Cancel Deposit',
+        'hint.understand_button': 'I Understand',
+        'notification.copied': '✅ Copied to clipboard!',
+        'notification.deposit_received': 'Deposit wallet received!',
+        'notification.confirmed': '✅ Payment confirmed! Processing...',
+        'notification.cancelled': 'Deposit cancelled',
+        'notification.withdrawal_submitted': '✅ Withdrawal request submitted!',
+        'notification.saved_wallet_used': 'Saved wallet number applied',
+        'notification.fill_all_fields': 'Please fill all fields',
+        'notification.select_method': 'Please select payment method',
+        'notification.min_deposit': 'Minimum deposit is {amount} {currency}',
+        'notification.min_withdrawal': 'Minimum withdrawal is {amount} {currency}',
+        'notification.code_length': 'Withdrawal code must be at least 4 characters',
+        'notification.network_error': 'Network error. Please try again.',
+        'notification.time_expired': 'Deposit time expired. Please start over.',
+        'notification.no_deposit': 'No deposit to confirm',
+        'notification.server_error': 'Server error. Please try again.',
+        'notification.confirmation_failed': 'Confirmation failed: {message}',
+        'notification.antispam': 'Please wait {minutes} minutes before identical request',
+        'notification.withdrawal_failed': 'Withdrawal failed: {message}'
+    },
+    
+    ru: {
+        'title': 'Платёжная Система',
+        'subtitle': 'Безопасные пополнения и выводы',
+        'currency': 'EGP',
+        'deposit.tab': '💰 Пополнение',
+        'withdrawal.tab': '💸 Вывод',
+        'deposit.account_label': 'Игровой Аккаунт',
+        'deposit.amount_label': 'Сумма',
+        'deposit.wallet_label': 'Ваш Номер Кошелька',
+        'deposit.method_label': 'Способ Оплаты',
+        'deposit.min_amount': 'Минимум:',
+        'deposit.use_saved': 'Использовать сохранённый',
+        'deposit.get_wallet_button': 'Получить Кошелёк',
+        'deposit.loading_methods': 'Загрузка способов оплаты...',
+        'deposit.note': '💡 Отправьте точную сумму на указанный кошелёк. Транзакция будет обработана в течение 5-10 минут.',
+        'withdrawal.account_label': 'Игровой Аккаунт',
+        'withdrawal.amount_label': 'Сумма',
+        'withdrawal.wallet_label': 'Ваш Номер Кошелька',
+        'withdrawal.code_label': 'Код Вывода',
+        'withdrawal.min_amount': 'Минимум:',
+        'withdrawal.request_button': 'Запросить Вывод',
+        'withdrawal.note': '🔒 Выводы обрабатываются в течение 24 часов. Убедитесь, что код правильный.',
+        'popup.title': 'Отправить Платёж',
+        'popup.subtitle': 'Завершите транзакцию пополнения',
+        'popup.wallet_hint': 'Отправьте точную сумму на этот кошелёк:',
+        'popup.copy_hint': 'Нажмите чтобы скопировать • Действителен 15 минут',
+        'popup.time_left': 'Осталось времени:',
+        'popup.warning_title': 'Важное Уведомление',
+        'popup.warning_text': 'Если вы отправляете заявки без реального перевода средств, деньги НЕ будут зачислены на ваш аккаунт. Множественные фейковые заявки могут привести к временной блокировке возможности пополнения.',
+        'popup.confirm_button': '✅ Я Отправил Платёж',
+        'popup.cancel_button': '❌ Отменить Пополнение',
+        'hint.understand_button': 'Понятно',
+        'notification.copied': '✅ Скопировано в буфер!',
+        'notification.deposit_received': 'Кошелёк для пополнения получен!',
+        'notification.confirmed': '✅ Платёж подтверждён! Обработка...',
+        'notification.cancelled': 'Пополнение отменено',
+        'notification.withdrawal_submitted': '✅ Запрос на вывод отправлен!',
+        'notification.saved_wallet_used': 'Сохранённый номер кошелька применён',
+        'notification.fill_all_fields': 'Пожалуйста, заполните все поля',
+        'notification.select_method': 'Пожалуйста, выберите способ оплаты',
+        'notification.min_deposit': 'Минимальное пополнение {amount} {currency}',
+        'notification.min_withdrawal': 'Минимальный вывод {amount} {currency}',
+        'notification.code_length': 'Код вывода должен быть не менее 4 символов',
+        'notification.network_error': 'Ошибка сети. Пожалуйста, попробуйте снова.',
+        'notification.time_expired': 'Время на пополнение истекло. Пожалуйста, начните заново.',
+        'notification.no_deposit': 'Нет пополнения для подтверждения',
+        'notification.server_error': 'Ошибка сервера. Пожалуйста, попробуйте снова.',
+        'notification.confirmation_failed': 'Подтверждение не удалось: {message}',
+        'notification.antispam': 'Пожалуйста, подождите {minutes} минут перед идентичным запросом',
+        'notification.withdrawal_failed': 'Вывод не удался: {message}'
+    },
+    
+    fr: {
+        'title': 'Système de Paiement',
+        'subtitle': 'Dépôts et retraits sécurisés',
+        'currency': 'EGP',
+        'deposit.tab': '💰 Dépôt',
+        'withdrawal.tab': '💸 Retrait',
+        'deposit.account_label': 'Compte Joueur',
+        'deposit.amount_label': 'Montant',
+        'deposit.wallet_label': 'Votre Numéro de Portefeuille',
+        'deposit.method_label': 'Méthode de Paiement',
+        'deposit.min_amount': 'Minimum:',
+        'deposit.use_saved': 'Utiliser le portefeuille sauvegardé',
+        'deposit.get_wallet_button': 'Obtenir le Portefeuille',
+        'deposit.loading_methods': 'Chargement des méthodes de paiement...',
+        'deposit.note': '💡 Envoyez le montant exact au portefeuille fourni. La transaction sera traitée dans les 5-10 minutes.',
+        'withdrawal.account_label': 'Compte Joueur',
+        'withdrawal.amount_label': 'Montant',
+        'withdrawal.wallet_label': 'Votre Numéro de Portefeuille',
+        'withdrawal.code_label': 'Code de Retrait',
+        'withdrawal.min_amount': 'Minimum:',
+        'withdrawal.request_button': 'Demander un Retrait',
+        'withdrawal.note': '🔒 Les retraits sont traités dans les 24 heures. Assurez-vous que le code est correct.',
+        'popup.title': 'Envoyer le Paiement',
+        'popup.subtitle': 'Complétez votre transaction de dépôt',
+        'popup.wallet_hint': 'Envoyez le montant exact à ce portefeuille:',
+        'popup.copy_hint': 'Cliquez pour copier • Valide 15 minutes',
+        'popup.time_left': 'Temps restant:',
+        'popup.warning_title': 'Avis Important',
+        'popup.warning_text': 'Si vous soumettez des demandes sans envoyer d\'argent, les fonds NE seront PAS crédités sur votre compte. De multiples fausses demandes peuvent entraîner une suspension temporaire des privilèges de dépôt.',
+        'popup.confirm_button': '✅ J\'ai Envoyé le Paiement',
+        'popup.cancel_button': '❌ Annuler le Dépôt',
+        'hint.understand_button': 'Je Comprends',
+        'notification.copied': '✅ Copié dans le presse-papiers!',
+        'notification.deposit_received': 'Portefeuille de dépôt reçu!',
+        'notification.confirmed': '✅ Paiement confirmé! Traitement...',
+        'notification.cancelled': 'Dépôt annulé',
+        'notification.withdrawal_submitted': '✅ Demande de retrait soumise!',
+        'notification.saved_wallet_used': 'Numéro de portefeuille sauvegardé appliqué',
+        'notification.fill_all_fields': 'Veuillez remplir tous les champs',
+        'notification.select_method': 'Veuillez sélectionner une méthode de paiement',
+        'notification.min_deposit': 'Dépôt minimum {amount} {currency}',
+        'notification.min_withdrawal': 'Retrait minimum {amount} {currency}',
+        'notification.code_length': 'Le code de retrait doit comporter au moins 4 caractères',
+        'notification.network_error': 'Erreur réseau. Veuillez réessayer.',
+        'notification.time_expired': 'Le temps de dépôt a expiré. Veuillez recommencer.',
+        'notification.no_deposit': 'Aucun dépôt à confirmer',
+        'notification.server_error': 'Erreur serveur. Veuillez réessayer.',
+        'notification.confirmation_failed': 'Échec de la confirmation: {message}',
+        'notification.antispam': 'Veuillez attendre {minutes} minutes avant une demande identique',
+        'notification.withdrawal_failed': 'Échec du retrait: {message}'
+    },
+    
+    ar: {
+        'title': 'نظام الدفع',
+        'subtitle': 'إيداعات وسحوبات آمنة',
+        'currency': 'جنيه مصري',
+        'deposit.tab': '💰 إيداع',
+        'withdrawal.tab': '💸 سحب',
+        'deposit.account_label': 'حساب اللاعب',
+        'deposit.amount_label': 'المبلغ',
+        'deposit.wallet_label': 'رقم محفظتك',
+        'deposit.method_label': 'طريقة الدفع',
+        'deposit.min_amount': 'الحد الأدنى:',
+        'deposit.use_saved': 'استخدم المحفظة المحفوظة',
+        'deposit.get_wallet_button': 'الحصول على محفظة الإيداع',
+        'deposit.loading_methods': 'جاري تحميل طرق الدفع...',
+        'deposit.note': '💡 أرسل المبلغ المحدد إلى المحفظة المقدمة. ستتم معالجة المعاملة خلال 5-10 دقائق.',
+        'withdrawal.account_label': 'حساب اللاعب',
+        'withdrawal.amount_label': 'المبلغ',
+        'withdrawal.wallet_label': 'رقم محفظتك',
+        'withdrawal.code_label': 'كود السحب',
+        'withdrawal.min_amount': 'الحد الأدنى:',
+        'withdrawal.request_button': 'طلب السحب',
+        'withdrawal.note': '🔒 تتم معالجة السحوبات خلال 24 ساعة. تأكد من صحة الكود.',
+        'popup.title': 'إرسال الدفع',
+        'popup.subtitle': 'أكمل معاملة الإيداع',
+        'popup.wallet_hint': 'أرسل المبلغ المحدد إلى هذه المحفظة:',
+        'popup.copy_hint': 'انقر للنسخ • صالح لمدة 15 دقيقة',
+        'popup.time_left': 'الوقت المتبقي:',
+        'popup.warning_title': 'إشعار مهم',
+        'popup.warning_text': 'إذا قمت بتقديم طلبات دون إرسال الأموال فعليًا، فلن يتم إضافة الأموال إلى حسابك. قد تؤدي الطلبات المزيفة المتعددة إلى تعليق مؤقت لامتيازات الإيداع.',
+        'popup.confirm_button': '✅ لقد أرسلت الدفع',
+        'popup.cancel_button': '❌ إلغاء الإيداع',
+        'hint.understand_button': 'فهمت',
+        'notification.copied': '✅ تم النسخ إلى الحافظة!',
+        'notification.deposit_received': 'تم استلام محفظة الإيداع!',
+        'notification.confirmed': '✅ تم تأكيد الدفع! جاري المعالجة...',
+        'notification.cancelled': 'تم إلغاء الإيداع',
+        'notification.withdrawal_submitted': '✅ تم تقديم طلب السحب!',
+        'notification.saved_wallet_used': 'تم تطبيق رقم المحفظة المحفوظ',
+        'notification.fill_all_fields': 'يرجى ملء جميع الحقول',
+        'notification.select_method': 'يرجى اختيار طريقة الدفع',
+        'notification.min_deposit': 'الحد الأدنى للإيداع {amount} {currency}',
+        'notification.min_withdrawal': 'الحد الأدنى للسحب {amount} {currency}',
+        'notification.code_length': 'يجب أن يكون كود السحب 4 أحرف على الأقل',
+        'notification.network_error': 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.',
+        'notification.time_expired': 'انتهى وقت الإيداع. يرجى البدء من جديد.',
+        'notification.no_deposit': 'لا يوجد إيداع لتأكيد',
+        'notification.server_error': 'خطأ في الخادم. يرجى المحاولة مرة أخرى.',
+        'notification.confirmation_failed': 'فشل التأكيد: {message}',
+        'notification.antispam': 'يرجى الانتظار {minutes} دقائق قبل الطلب المماثل',
+        'notification.withdrawal_failed': 'فشل السحب: {message}'
+    }
+};
+
+function detectLanguage() {
+    const browserLang = navigator.language || navigator.userLanguage;
+    let lang = 'en';
+    
+    if (browserLang.startsWith('ru')) lang = 'ru';
+    else if (browserLang.startsWith('fr')) lang = 'fr';
+    else if (browserLang.startsWith('ar')) lang = 'ar';
+    
+    changeLanguage(lang);
+    log('info', `Browser language detected: ${browserLang}, using: ${lang}`);
 }
 
-function retryLoadWallets() {
-    const container = document.getElementById('walletMethods');
-    container.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p style="text-align: center; color: var(--secondary-text);" data-i18n="deposit.loading_methods">
-                Loading payment methods...
-            </p>
-        </div>
-    `;
+function changeLanguage(lang) {
+    if (!translations[lang]) {
+        lang = 'en';
+        log('warning', `Language ${lang} not found, defaulting to English`);
+    }
     
-    loadWallets().then(() => {
-        log('info', 'Wallets reloaded successfully');
-    }).catch(error => {
-        log('error', 'Failed to reload wallets', error);
-        showWalletLoadingError();
+    state.currentLanguage = lang;
+    document.documentElement.lang = lang;
+    
+    if (lang === 'ar') {
+        document.body.setAttribute('dir', 'rtl');
+        log('info', 'RTL direction applied for Arabic');
+    } else {
+        document.body.removeAttribute('dir');
+    }
+    
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent === lang.toUpperCase()) {
+            btn.classList.add('active');
+        }
+    });
+    
+    applyTranslations(lang);
+    log('info', `Language changed to: ${lang}`);
+}
+
+function applyTranslations(lang) {
+    const trans = translations[lang];
+    
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (trans[key]) {
+            element.textContent = trans[key];
+        }
     });
 }
+
+function translate(key, params = {}) {
+    let text = translations[state.currentLanguage][key] || translations['en'][key] || key;
+    
+    for (const [param, value] of Object.entries(params)) {
+        text = text.replace(`{${param}}`, value);
+    }
+    
+    return text;
+}
+
+// ========== ПОДСКАЗКИ ==========
+const hints = {
+    'accountHint': {
+        title: 'Player Account',
+        text: 'Enter your game account username or ID. This is required to credit funds to your account.'
+    },
+    'amountHint': {
+        title: 'Amount',
+        text: 'Enter the amount you want to deposit. Minimum deposit is 100 EGP.'
+    },
+    'walletHint': {
+        title: 'Your Wallet Number',
+        text: 'Enter your personal wallet number (Vodafone Cash, InstaPay, etc.). This wallet will be used for withdrawals.'
+    },
+    'methodHint': {
+        title: 'Payment Method',
+        text: 'Select the payment method you want to use for this deposit.'
+    },
+    'withdrawAccountHint': {
+        title: 'Player Account',
+        text: 'Enter your game account username or ID. This is required to process your withdrawal.'
+    },
+    'withdrawAmountHint': {
+        title: 'Amount',
+        text: 'Enter the amount you want to withdraw. Minimum withdrawal is 300 EGP.'
+    },
+    'withdrawWalletHint': {
+        title: 'Your Wallet Number',
+        text: 'Enter your personal wallet number where you want to receive the withdrawal.'
+    },
+    'codeHint': {
+        title: 'Withdrawal Code',
+        text: 'Enter the withdrawal code provided by the game or system. This code is required for security.'
+    }
+};
+
+function showHint(hintId) {
+    const hint = hints[hintId];
+    if (!hint) return;
+    
+    document.getElementById('hintTitle').textContent = translateHint(hint.title);
+    document.getElementById('hintText').textContent = translateHint(hint.text);
+    
+    document.getElementById('hintOverlay').classList.add('active');
+    document.getElementById('hintPopup').classList.add('active');
+    
+    log('info', `Hint shown: ${hintId}`);
+}
+
+function closeHint() {
+    document.getElementById('hintOverlay').classList.remove('active');
+    document.getElementById('hintPopup').classList.remove('active');
+}
+
+function translateHint(text) {
+    if (state.currentLanguage === 'ru') {
+        const ruHints = {
+            'Player Account': 'Игровой Аккаунт',
+            'Amount': 'Сумма',
+            'Your Wallet Number': 'Ваш Номер Кошелька',
+            'Payment Method': 'Способ Оплаты',
+            'Withdrawal Code': 'Код Вывода'
+        };
+        return ruHints[text] || text;
+    }
+    return text;
+}
+
+// ========== УТИЛИТЫ ==========
+function showNotification(messageKey, isError = false, params = {}) {
+    const message = translate(messageKey, params);
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${isError ? 'error' : 'success'}`;
+    notification.style.display = 'block';
+    setTimeout(() => notification.style.display = 'none', 3000);
+    
+    log(isError ? 'error' : 'success', `Notification: ${message}`);
+}
+
+// ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
+function switchTab(tabName) {
+    if (!state.isLoaded) return;
+    
+    state.currentTab = tabName;
+    
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    document.querySelector(`.tab[onclick*="${tabName}"]`).classList.add('active');
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    
+    log('info', `Tab switched to: ${tabName}`);
+}
+
+// ========== СОХРАНЕНИЕ КОШЕЛЬКА ==========
+function useSavedWallet() {
+    if (state.savedWallet) {
+        if (state.currentTab === 'deposit') {
+            document.getElementById('wallet').value = state.savedWallet;
+        } else {
+            document.getElementById('withdrawWallet').value = state.savedWallet;
+        }
+        showNotification('saved_wallet_used');
+        log('info', 'Saved wallet applied to form');
+    }
+}
+
+// ========== ЗАГРУЗКА КОНФИГУРАЦИИ ==========
+async function loadConfig() {
+    try {
+        const url = API_URL + '?action=get_config&t=' + Date.now();
+        log('info', `Fetching config from: ${url}`);
         
-        // ========== МНОГОЯЗЫЧНОСТЬ ==========
-        const translations = {
-            en: {
-                'title': 'Payment System',
-                'subtitle': 'Secure deposits & withdrawals',
-                'currency': 'EGP',
-                'deposit.tab': '💰 Deposit',
-                'withdrawal.tab': '💸 Withdrawal',
-                'deposit.account_label': 'Player Account',
-                'deposit.amount_label': 'Amount',
-                'deposit.wallet_label': 'Your Wallet Number',
-                'deposit.method_label': 'Payment Method',
-                'deposit.min_amount': 'Minimum:',
-                'deposit.use_saved': 'Use saved wallet',
-                'deposit.get_wallet_button': 'Get Deposit Wallet',
-                'deposit.loading_methods': 'Loading payment methods...',
-                'deposit.note': '💡 Send exact amount to the provided wallet. Transaction will be processed within 5-10 minutes.',
-                'withdrawal.account_label': 'Player Account',
-                'withdrawal.amount_label': 'Amount',
-                'withdrawal.wallet_label': 'Your Wallet Number',
-                'withdrawal.code_label': 'Withdrawal Code',
-                'withdrawal.min_amount': 'Minimum:',
-                'withdrawal.request_button': 'Request Withdrawal',
-                'withdrawal.note': '🔒 Withdrawals are processed within 24 hours. Make sure the code is correct.',
-                'popup.title': 'Send Payment',
-                'popup.subtitle': 'Complete your deposit transaction',
-                'popup.wallet_hint': 'Send the exact amount to this wallet:',
-                'popup.copy_hint': 'Click to copy • Valid for 15 minutes',
-                'popup.time_left': 'Time left:',
-                'popup.warning_title': 'Important Notice',
-                'popup.warning_text': 'If you submit requests without actually sending money, funds will NOT be credited to your account. Multiple fake requests may result in temporary suspension of deposit privileges.',
-                'popup.confirm_button': '✅ I Have Sent the Payment',
-                'popup.cancel_button': '❌ Cancel Deposit',
-                'hint.understand_button': 'I Understand',
-                'notification.copied': '✅ Copied to clipboard!',
-                'notification.deposit_received': 'Deposit wallet received!',
-                'notification.confirmed': '✅ Payment confirmed! Processing...',
-                'notification.cancelled': 'Deposit cancelled',
-                'notification.withdrawal_submitted': '✅ Withdrawal request submitted!',
-                'notification.saved_wallet_used': 'Saved wallet number applied',
-                'notification.fill_all_fields': 'Please fill all fields',
-                'notification.select_method': 'Please select payment method',
-                'notification.min_deposit': 'Minimum deposit is {amount} {currency}',
-                'notification.min_withdrawal': 'Minimum withdrawal is {amount} {currency}',
-                'notification.code_length': 'Withdrawal code must be at least 4 characters',
-                'notification.network_error': 'Network error. Please try again.',
-                'notification.time_expired': 'Deposit time expired. Please start over.',
-                'notification.no_deposit': 'No deposit to confirm',
-                'notification.server_error': 'Server error. Please try again.',
-                'notification.confirmation_failed': 'Confirmation failed: {message}',
-                'notification.antispam': 'Please wait {minutes} minutes before identical request',
-                'notification.withdrawal_failed': 'Withdrawal failed: {message}'
-                
-            },
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        log('info', 'Config response received', result);
+        
+        if (result.status === 'success') {
+            state.config = result.config;
+            document.getElementById('minDeposit').textContent = state.config.minDeposit;
+            document.getElementById('minWithdrawal').textContent = state.config.minWithdrawal;
+            document.getElementById('amount').min = state.config.minDeposit;
+            document.getElementById('withdrawAmount').min = state.config.minWithdrawal;
             
-            ru: {
-                'title': 'Платёжная Система',
-                'subtitle': 'Безопасные пополнения и выводы',
-                'currency': 'EGP',
-                'deposit.tab': '💰 Пополнение',
-                'withdrawal.tab': '💸 Вывод',
-                'deposit.account_label': 'Игровой Аккаунт',
-                'deposit.amount_label': 'Сумма',
-                'deposit.wallet_label': 'Ваш Номер Кошелька',
-                'deposit.method_label': 'Способ Оплаты',
-                'deposit.min_amount': 'Минимум:',
-                'deposit.use_saved': 'Использовать сохранённый',
-                'deposit.get_wallet_button': 'Получить Кошелёк',
-                'deposit.loading_methods': 'Загрузка способов оплаты...',
-                'deposit.note': '💡 Отправьте точную сумму на указанный кошелёк. Транзакция будет обработана в течение 5-10 минут.',
-                'withdrawal.account_label': 'Игровой Аккаунт',
-                'withdrawal.amount_label': 'Сумма',
-                'withdrawal.wallet_label': 'Ваш Номер Кошелька',
-                'withdrawal.code_label': 'Код Вывода',
-                'withdrawal.min_amount': 'Минимум:',
-                'withdrawal.request_button': 'Запросить Вывод',
-                'withdrawal.note': '🔒 Выводы обрабатываются в течение 24 часов. Убедитесь, что код правильный.',
-                'popup.title': 'Отправить Платёж',
-                'popup.subtitle': 'Завершите транзакцию пополнения',
-                'popup.wallet_hint': 'Отправьте точную сумму на этот кошелёк:',
-                'popup.copy_hint': 'Нажмите чтобы скопировать • Действителен 15 минут',
-                'popup.time_left': 'Осталось времени:',
-                'popup.warning_title': 'Важное Уведомление',
-                'popup.warning_text': 'Если вы отправляете заявки без реального перевода средств, деньги НЕ будут зачислены на ваш аккаунт. Множественные фейковые заявки могут привести к временной блокировке возможности пополнения.',
-                'popup.confirm_button': '✅ Я Отправил Платёж',
-                'popup.cancel_button': '❌ Отменить Пополнение',
-                'hint.understand_button': 'Понятно',
-                'notification.copied': '✅ Скопировано в буфер!',
-                'notification.deposit_received': 'Кошелёк для пополнения получен!',
-                'notification.confirmed': '✅ Платёж подтверждён! Обработка...',
-                'notification.cancelled': 'Пополнение отменено',
-                'notification.withdrawal_submitted': '✅ Запрос на вывод отправлен!',
-                'notification.saved_wallet_used': 'Сохранённый номер кошелька применён',
-                'notification.fill_all_fields': 'Пожалуйста, заполните все поля',
-                'notification.select_method': 'Пожалуйста, выберите способ оплаты',
-                'notification.min_deposit': 'Минимальное пополнение {amount} {currency}',
-                'notification.min_withdrawal': 'Минимальный вывод {amount} {currency}',
-                'notification.code_length': 'Код вывода должен быть не менее 4 символов',
-                'notification.network_error': 'Ошибка сети. Пожалуйста, попробуйте снова.',
-                'notification.time_expired': 'Время на пополнение истекло. Пожалуйста, начните заново.',
-                'notification.no_deposit': 'Нет пополнения для подтверждения',
-                'notification.server_error': 'Ошибка сервера. Пожалуйста, попробуйте снова.',
-                'notification.confirmation_failed': 'Подтверждение не удалось: {message}',
-                'notification.antispam': 'Пожалуйста, подождите {minutes} минут перед идентичным запросом',
-                'notification.withdrawal_failed': 'Вывод не удался: {message}'
-            },
+            log('success', 'Configuration loaded successfully', state.config);
+        } else {
+            log('error', 'Failed to load config', result);
+            throw new Error(result.message || 'Config load failed');
+        }
+    } catch (error) {
+        state.config = { minDeposit: 100, minWithdrawal: 300, currency: 'EGP' };
+        log('warning', 'Using default config due to error', error);
+    }
+}
+
+// ========== ЗАГРУЗКА КОШЕЛЬКОВ ==========
+async function loadWallets() {
+    try {
+        const url = API_URL + '?action=get_wallets&t=' + Date.now();
+        log('info', `Fetching wallets from: ${url}`);
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        log('info', 'Wallets response received', { 
+            status: result.status,
+            source: result.source,
+            count: result.wallets ? Object.keys(result.wallets).length : 0
+        });
+        
+        if (result.status === 'success') {
+            state.wallets = result.wallets;
+            renderWalletMethods();
             
-            fr: {
-                'title': 'Système de Paiement',
-                'subtitle': 'Dépôts et retraits sécurisés',
-                'currency': 'EGP',
-                'deposit.tab': '💰 Dépôt',
-                'withdrawal.tab': '💸 Retrait',
-                'deposit.account_label': 'Compte Joueur',
-                'deposit.amount_label': 'Montant',
-                'deposit.wallet_label': 'Votre Numéro de Portefeuille',
-                'deposit.method_label': 'Méthode de Paiement',
-                'deposit.min_amount': 'Minimum:',
-                'deposit.use_saved': 'Utiliser le portefeuille sauvegardé',
-                'deposit.get_wallet_button': 'Obtenir le Portefeuille',
-                'deposit.loading_methods': 'Chargement des méthodes de paiement...',
-                'deposit.note': '💡 Envoyez le montant exact au portefeuille fourni. La transaction sera traitée dans les 5-10 minutes.',
-                'withdrawal.account_label': 'Compte Joueur',
-                'withdrawal.amount_label': 'Montant',
-                'withdrawal.wallet_label': 'Votre Numéro de Portefeuille',
-                'withdrawal.code_label': 'Code de Retrait',
-                'withdrawal.min_amount': 'Minimum:',
-                'withdrawal.request_button': 'Demander un Retrait',
-                'withdrawal.note': '🔒 Les retraits sont traités dans les 24 heures. Assurez-vous que le code est correct.',
-                'popup.title': 'Envoyer le Paiement',
-                'popup.subtitle': 'Complétez votre transaction de dépôt',
-                'popup.wallet_hint': 'Envoyez le montant exact à ce portefeuille:',
-                'popup.copy_hint': 'Cliquez pour copier • Valide 15 minutes',
-                'popup.time_left': 'Temps restant:',
-                'popup.warning_title': 'Avis Important',
-                'popup.warning_text': 'Si vous soumettez des demandes sans envoyer d\'argent, les fonds NE seront PAS crédités sur votre compte. De multiples fausses demandes peuvent entraîner une suspension temporaire des privilèges de dépôt.',
-                'popup.confirm_button': '✅ J\'ai Envoyé le Paiement',
-                'popup.cancel_button': '❌ Annuler le Dépôt',
-                'hint.understand_button': 'Je Comprends',
-                'notification.copied': '✅ Copié dans le presse-papiers!',
-                'notification.deposit_received': 'Portefeuille de dépôt reçu!',
-                'notification.confirmed': '✅ Paiement confirmé! Traitement...',
-                'notification.cancelled': 'Dépôt annulé',
-                'notification.withdrawal_submitted': '✅ Demande de retrait soumise!',
-                'notification.saved_wallet_used': 'Numéro de portefeuille sauvegardé appliqué',
-                'notification.fill_all_fields': 'Veuillez remplir tous les champs',
-                'notification.select_method': 'Veuillez sélectionner une méthode de paiement',
-                'notification.min_deposit': 'Dépôt minimum {amount} {currency}',
-                'notification.min_withdrawal': 'Retrait minimum {amount} {currency}',
-                'notification.code_length': 'Le code de retrait doit comporter au moins 4 caractères',
-                'notification.network_error': 'Erreur réseau. Veuillez réessayer.',
-                'notification.time_expired': 'Le temps de dépôt a expiré. Veuillez recommencer.',
-                'notification.no_deposit': 'Aucun dépôt à confirmer',
-                'notification.server_error': 'Erreur serveur. Veuillez réessayer.',
-                'notification.confirmation_failed': 'Échec de la confirmation: {message}',
-                'notification.antispam': 'Veuillez attendre {minutes} minutes avant une demande identique',
-                'notification.withdrawal_failed': 'Échec du retrait: {message}'
-            },
-            
-            ar: {
-                'title': 'نظام الدفع',
-                'subtitle': 'إيداعات وسحوبات آمنة',
-                'currency': 'جنيه مصري',
-                'deposit.tab': '💰 إيداع',
-                'withdrawal.tab': '💸 سحب',
-                'deposit.account_label': 'حساب اللاعب',
-                'deposit.amount_label': 'المبلغ',
-                'deposit.wallet_label': 'رقم محفظتك',
-                'deposit.method_label': 'طريقة الدفع',
-                'deposit.min_amount': 'الحد الأدنى:',
-                'deposit.use_saved': 'استخدم المحفظة المحفوظة',
-                'deposit.get_wallet_button': 'الحصول على محفظة الإيداع',
-                'deposit.loading_methods': 'جاري تحميل طرق الدفع...',
-                'deposit.note': '💡 أرسل المبلغ المحدد إلى المحفظة المقدمة. ستتم معالجة المعاملة خلال 5-10 دقائق.',
-                'withdrawal.account_label': 'حساب اللاعب',
-                'withdrawal.amount_label': 'المبلغ',
-                'withdrawal.wallet_label': 'رقم محفظتك',
-                'withdrawal.code_label': 'كود السحب',
-                'withdrawal.min_amount': 'الحد الأدنى:',
-                'withdrawal.request_button': 'طلب السحب',
-                'withdrawal.note': '🔒 تتم معالجة السحوبات خلال 24 ساعة. تأكد من صحة الكود.',
-                'popup.title': 'إرسال الدفع',
-                'popup.subtitle': 'أكمل معاملة الإيداع',
-                'popup.wallet_hint': 'أرسل المبلغ المحدد إلى هذه المحفظة:',
-                'popup.copy_hint': 'انقر للنسخ • صالح لمدة 15 دقيقة',
-                'popup.time_left': 'الوقت المتبقي:',
-                'popup.warning_title': 'إشعار مهم',
-                'popup.warning_text': 'إذا قمت بتقديم طلبات دون إرسال الأموال فعليًا، فلن يتم إضافة الأموال إلى حسابك. قد تؤدي الطلبات المزيفة المتعددة إلى تعليق مؤقت لامتيازات الإيداع.',
-                'popup.confirm_button': '✅ لقد أرسلت الدفع',
-                'popup.cancel_button': '❌ إلغاء الإيداع',
-                'hint.understand_button': 'فهمت',
-                'notification.copied': '✅ تم النسخ إلى الحافظة!',
-                'notification.deposit_received': 'تم استلام محفظة الإيداع!',
-                'notification.confirmed': '✅ تم تأكيد الدفع! جاري المعالجة...',
-                'notification.cancelled': 'تم إلغاء الإيداع',
-                'notification.withdrawal_submitted': '✅ تم تقديم طلب السحب!',
-                'notification.saved_wallet_used': 'تم تطبيق رقم المحفظة المحفوظ',
-                'notification.fill_all_fields': 'يرجى ملء جميع الحقول',
-                'notification.select_method': 'يرجى اختيار طريقة الدفع',
-                'notification.min_deposit': 'الحد الأدنى للإيداع {amount} {currency}',
-                'notification.min_withdrawal': 'الحد الأدنى للسحب {amount} {currency}',
-                'notification.code_length': 'يجب أن يكون كود السحب 4 أحرف على الأقل',
-                'notification.network_error': 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.',
-                'notification.time_expired': 'انتهى وقت الإيداع. يرجى البدء من جديد.',
-                'notification.no_deposit': 'لا يوجد إيداع لتأكيد',
-                'notification.server_error': 'خطأ في الخادم. يرجى المحاولة مرة أخرى.',
-                'notification.confirmation_failed': 'فشل التأكيد: {message}',
-                'notification.antispam': 'يرجى الانتظار {minutes} دقائق قبل الطلب المماثل',
-                'notification.withdrawal_failed': 'فشل السحب: {message}'
-            }
+            log('success', 'Wallets loaded successfully', {
+                count: Object.keys(state.wallets).length,
+                types: Object.keys(state.wallets)
+            });
+        } else {
+            log('error', 'Failed to load wallets', result);
+            throw new Error(result.message || 'Wallets load failed');
+        }
+    } catch (error) {
+        state.wallets = {
+            vodafone: { name: 'Vodafone Cash', enabled: true, availableNumbers: ['01012345678'] },
+            instapay: { name: 'InstaPay QR', enabled: true, availableNumbers: ['01111111111'] }
         };
+        renderWalletMethods();
+        log('warning', 'Using test wallets due to error', error);
+    }
+}
 
-        // ========== ЯЗЫКОВЫЕ ФУНКЦИИ ==========
-        function detectLanguage() {
-            const browserLang = navigator.language || navigator.userLanguage;
-            let lang = 'en'; // По умолчанию английский
+function renderWalletMethods() {
+    const container = document.getElementById('walletMethods');
+    if (!state.wallets || Object.keys(state.wallets).length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;">⚠️ No payment methods available</div>';
+        log('warning', 'No payment methods available to render');
+        return;
+    }
+    
+    let html = '';
+    let enabledCount = 0;
+    
+    Object.entries(state.wallets).forEach(([type, wallet]) => {
+        if (wallet.enabled) {
+            enabledCount++;
+            const isActive = state.selectedMethod === type;
+            const icon = type === 'vodafone' ? '📱' : type === 'instapay' ? '💳' : '💰';
             
-            if (browserLang.startsWith('ru')) lang = 'ru';
-            else if (browserLang.startsWith('fr')) lang = 'fr';
-            else if (browserLang.startsWith('ar')) lang = 'ar';
-            
-            changeLanguage(lang);
-            log('info', `Browser language detected: ${browserLang}, using: ${lang}`);
+            html += `
+                <div class="wallet-type-btn ${isActive ? 'active' : ''}" 
+                     onclick="selectWalletMethod('${type}')"
+                     data-type="${type}">
+                    ${icon} ${wallet.name || type}
+                </div>
+            `;
         }
+    });
+    
+    container.innerHTML = html;
+    log('info', `Rendered ${enabledCount} payment methods`);
+}
 
-        function changeLanguage(lang) {
-            if (!translations[lang]) {
-                lang = 'en';
-                log('warning', `Language ${lang} not found, defaulting to English`);
-            }
-            
-            state.currentLanguage = lang;
-            document.documentElement.lang = lang;
-            
-            // Для арабского меняем направление текста
-            if (lang === 'ar') {
-                document.body.setAttribute('dir', 'rtl');
-                log('info', 'RTL direction applied for Arabic');
-            } else {
-                document.body.removeAttribute('dir');
-            }
-            
-            // Обновляем активную кнопку языка
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent === lang.toUpperCase()) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            // Применяем переводы
-            applyTranslations(lang);
-            log('info', `Language changed to: ${lang}`);
+function selectWalletMethod(type) {
+    state.selectedMethod = type;
+    document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
+    const selectedBtn = document.querySelector(`.wallet-type-btn[data-type="${type}"]`);
+    if (selectedBtn) selectedBtn.classList.add('active');
+    
+    log('info', `Payment method selected: ${type}`);
+}
+
+// ========== АНТИСПАМ УВЕДОМЛЕНИЕ ==========
+function showAntispamNotification(minutesLeft, language = 'en') {
+    closeAntispamNotification();
+    
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    
+    const messages = {
+        en: {
+            title: '⏰ Please Wait',
+            message: `You need to wait ${minutesLeft} minute${minutesLeft > 1 ? 's' : ''} before making another identical deposit request.`,
+            support: 'If the deposit hasn\'t been credited after this time, please contact support.',
+            button: 'OK'
+        },
+        ru: {
+            title: '⏰ Пожалуйста, подождите',
+            message: `Вам нужно подождать ${minutesLeft} минут${getRussianMinutesText(minutesLeft)} перед повторным идентичным запросом на пополнение.`,
+            support: 'Если средства не были зачислены после этого времени, пожалуйста, обратитесь в поддержку.',
+            button: 'OK'
+        },
+        fr: {
+            title: '⏰ Veuillez patienter',
+            message: `Vous devez attendre ${minutesLeft} minute${minutesLeft > 1 ? 's' : ''} avant de faire une autre demande de dépôt identique.`,
+            support: 'Si le dépôt n\'a pas été crédité après ce délai, veuillez contacter le support.',
+            button: 'OK'
+        },
+        ar: {
+            title: '⏰ يرجى الانتظار',
+            message: `يجب عليك الانتظار ${minutesLeft} دقيقة${minutesLeft > 1 ? 'ات' : ''} قبل تقديم طلب إيداع مماثل آخر.`,
+            support: 'إذا لم يتم إضافة الأموال بعد هذا الوقت، يرجى الاتصال بالدعم.',
+            button: 'موافق'
         }
+    };
+    
+    const msg = messages[language] || messages.en;
+    
+    // Создаем overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'antispamOverlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 9998;
+        backdrop-filter: blur(5px);
+    `;
+    overlay.onclick = closeAntispamNotification;
+    
+    // Создаем popup
+    const popup = document.createElement('div');
+    popup.id = 'antispamNotification';
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #042F28 0%, #0A5C4A 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        z-index: 9999;
+        width: 90%;
+        max-width: 450px;
+        border: 3px solid #D0E41E;
+        box-shadow: 0 0 40px rgba(208, 228, 30, 0.4);
+        backdrop-filter: blur(20px);
+        text-align: center;
+        animation: fadeIn 0.3s ease-out;
+        box-sizing: border-box;
+    `;
+    
+    // Заполняем содержимое
+    popup.innerHTML = `
+        <div style="font-size: 50px; margin-bottom: 20px; color: #D0E41E;">⏰</div>
+        <div style="font-size: 24px; font-weight: bold; color: #D0E41E; margin-bottom: 15px; word-wrap: break-word;">
+            ${msg.title}
+        </div>
+        <div style="font-size: 16px; margin-bottom: 20px; line-height: 1.5; padding: 0 5px; word-wrap: break-word;">
+            ${msg.message}
+        </div>
+        <div style="
+            background: rgba(208, 228, 30, 0.15);
+            border-left: 4px solid #D0E41E;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            text-align: left;
+            border-radius: 0 10px 10px 0;
+            line-height: 1.4;
+            word-wrap: break-word;
+        ">
+            💡 ${msg.support}
+        </div>
+        <button onclick="closeAntispamNotification()" style="
+            background: #D0E41E;
+            color: #2c3e50;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(208, 228, 30, 0.3);
+            box-sizing: border-box;
+        ">
+            ${msg.button}
+        </button>
+    `;
+    
+    // Добавляем в DOM
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
+    
+    // Блокируем скролл
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.body.style.width = '100vw';
+    
+    // Сохраняем оригинальные стили
+    document.body.dataset.originalOverflow = originalBodyOverflow;
+    document.body.dataset.originalPosition = originalBodyPosition;
+    
+    log('info', `Antispam notification shown: ${minutesLeft} minutes`);
+}
 
-        function applyTranslations(lang) {
-            const trans = translations[lang];
-            
-            // Обновляем все элементы с data-i18n
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (trans[key]) {
-                    element.textContent = trans[key];
-                }
-            });
-        }
+function closeAntispamNotification() {
+    const popup = document.getElementById('antispamNotification');
+    const overlay = document.getElementById('antispamOverlay');
+    
+    if (popup) popup.remove();
+    if (overlay) overlay.remove();
+    
+    // Восстанавливаем оригинальные стили
+    document.body.style.overflow = document.body.dataset.originalOverflow || '';
+    document.body.style.position = document.body.dataset.originalPosition || '';
+    document.body.style.height = '';
+    document.body.style.width = '';
+    
+    // Удаляем data-атрибуты
+    delete document.body.dataset.originalOverflow;
+    delete document.body.dataset.originalPosition;
+    
+    log('info', 'Antispam notification closed');
+}
 
-        function translate(key, params = {}) {
-            let text = translations[state.currentLanguage][key] || translations['en'][key] || key;
-            
-            // Заменяем параметры
-            for (const [param, value] of Object.entries(params)) {
-                text = text.replace(`{${param}}`, value);
-            }
-            
-            return text;
-        }
+function getRussianMinutesText(minutes) {
+    if (minutes === 1) return 'у';
+    if (minutes >= 2 && minutes <= 4) return 'ы';
+    return '';
+}
 
-        // ========== ПОДСКАЗКИ ==========
-        const hints = {
-            'accountHint': {
-                title: 'Player Account',
-                text: 'Enter your game account username or ID. This is required to credit funds to your account.'
-            },
-            'amountHint': {
-                title: 'Amount',
-                text: 'Enter the amount you want to deposit. Minimum deposit is 100 EGP.'
-            },
-            'walletHint': {
-                title: 'Your Wallet Number',
-                text: 'Enter your personal wallet number (Vodafone Cash, InstaPay, etc.). This wallet will be used for withdrawals.'
-            },
-            'methodHint': {
-                title: 'Payment Method',
-                text: 'Select the payment method you want to use for this deposit.'
-            },
-            'withdrawAccountHint': {
-                title: 'Player Account',
-                text: 'Enter your game account username or ID. This is required to process your withdrawal.'
-            },
-            'withdrawAmountHint': {
-                title: 'Amount',
-                text: 'Enter the amount you want to withdraw. Minimum withdrawal is 300 EGP.'
-            },
-            'withdrawWalletHint': {
-                title: 'Your Wallet Number',
-                text: 'Enter your personal wallet number where you want to receive the withdrawal.'
-            },
-            'codeHint': {
-                title: 'Withdrawal Code',
-                text: 'Enter the withdrawal code provided by the game or system. This code is required for security.'
-            }
-        };
-
-        function showHint(hintId) {
-            const hint = hints[hintId];
-            if (!hint) return;
-            
-            document.getElementById('hintTitle').textContent = translateHint(hint.title);
-            document.getElementById('hintText').textContent = translateHint(hint.text);
-            
-            document.getElementById('hintOverlay').classList.add('active');
-            document.getElementById('hintPopup').classList.add('active');
-            
-            log('info', `Hint shown: ${hintId}`);
-        }
-
-        function closeHint() {
-            document.getElementById('hintOverlay').classList.remove('active');
-            document.getElementById('hintPopup').classList.remove('active');
-        }
-
-        function translateHint(text) {
-            // Простая логика перевода подсказок
-            if (state.currentLanguage === 'ru') {
-                const ruHints = {
-                    'Player Account': 'Игровой Аккаунт',
-                    'Amount': 'Сумма',
-                    'Your Wallet Number': 'Ваш Номер Кошелька',
-                    'Payment Method': 'Способ Оплаты',
-                    'Withdrawal Code': 'Код Вывода'
-                };
-                return ruHints[text] || text;
-            }
-            return text;
-        }
-
-        // ========== УТИЛИТЫ ==========
-        function showNotification(messageKey, isError = false, params = {}) {
-            const message = translate(messageKey, params);
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${isError ? 'error' : 'success'}`;
-            notification.style.display = 'block';
-            setTimeout(() => notification.style.display = 'none', 3000);
-            
-            log(isError ? 'error' : 'success', `Notification: ${message}`);
-        }
-
-        // ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
-        function switchTab(tabName) {
-            if (!state.isLoaded) return;
-            
-            state.currentTab = tabName;
-            
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            document.querySelector(`.tab[onclick*="${tabName}"]`).classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            
-            log('info', `Tab switched to: ${tabName}`);
-        }
-
-        // ========== СОХРАНЕНИЕ КОШЕЛЬКА ==========
-        function useSavedWallet() {
-            if (state.savedWallet) {
-                if (state.currentTab === 'deposit') {
-                    document.getElementById('wallet').value = state.savedWallet;
-                } else {
-                    document.getElementById('withdrawWallet').value = state.savedWallet;
-                }
-                showNotification('saved_wallet_used');
-                log('info', 'Saved wallet applied to form');
-            }
-        }
-
-        // ========== ЗАГРУЗКА КОНФИГУРАЦИИ ==========
-        async function loadConfig() {
-            try {
-                const url = API_URL + '?action=get_config&t=' + Date.now();
-                log('info', `Fetching config from: ${url}`);
-                
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                log('info', 'Config response received', result);
-                
-                if (result.status === 'success') {
-                    state.config = result.config;
-                    document.getElementById('minDeposit').textContent = state.config.minDeposit;
-                    document.getElementById('minWithdrawal').textContent = state.config.minWithdrawal;
-                    document.getElementById('amount').min = state.config.minDeposit;
-                    document.getElementById('withdrawAmount').min = state.config.minWithdrawal;
-                    
-                    log('success', 'Configuration loaded successfully', state.config);
-                } else {
-                    log('error', 'Failed to load config', result);
-                    throw new Error(result.message || 'Config load failed');
-                }
-            } catch (error) {
-                state.config = { minDeposit: 100, minWithdrawal: 300, currency: 'EGP' };
-                log('warning', 'Using default config due to error', error);
-            }
-        }
-
-        // ========== ЗАГРУЗКА КОШЕЛЬКОВ ==========
-        async function loadWallets() {
-            try {
-                const url = API_URL + '?action=get_wallets&t=' + Date.now();
-                log('info', `Fetching wallets from: ${url}`);
-                
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                log('info', 'Wallets response received', { 
-                    status: result.status,
-                    source: result.source,
-                    count: result.wallets ? Object.keys(result.wallets).length : 0
-                });
-                
-                if (result.status === 'success') {
-                    state.wallets = result.wallets;
-                    renderWalletMethods();
-                    
-                    log('success', 'Wallets loaded successfully', {
-                        count: Object.keys(state.wallets).length,
-                        types: Object.keys(state.wallets)
-                    });
-                } else {
-                    log('error', 'Failed to load wallets', result);
-                    throw new Error(result.message || 'Wallets load failed');
-                }
-            } catch (error) {
-                state.wallets = {
-                    vodafone: { name: 'Vodafone Cash', enabled: true, availableNumbers: ['01012345678'] },
-                    instapay: { name: 'InstaPay QR', enabled: true, availableNumbers: ['01111111111'] }
-                };
-                renderWalletMethods();
-                log('warning', 'Using test wallets due to error', error);
-            }
-        }
-
-        function renderWalletMethods() {
-            const container = document.getElementById('walletMethods');
-            if (!state.wallets || Object.keys(state.wallets).length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;">⚠️ No payment methods available</div>';
-                log('warning', 'No payment methods available to render');
-                return;
-            }
-            
-            let html = '';
-            let enabledCount = 0;
-            
-            Object.entries(state.wallets).forEach(([type, wallet]) => {
-                if (wallet.enabled) {
-                    enabledCount++;
-                    const isActive = state.selectedMethod === type;
-                    const icon = type === 'vodafone' ? '📱' : type === 'instapay' ? '💳' : '💰';
-                    
-                    html += `
-                        <div class="wallet-type-btn ${isActive ? 'active' : ''}" 
-                             onclick="selectWalletMethod('${type}')"
-                             data-type="${type}">
-                            ${icon} ${wallet.name || type}
-                        </div>
-                    `;
-                }
-            });
-            
-            container.innerHTML = html;
-            log('info', `Rendered ${enabledCount} payment methods`);
-        }
-
-        function selectWalletMethod(type) {
-            state.selectedMethod = type;
-            document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
-            const selectedBtn = document.querySelector(`.wallet-type-btn[data-type="${type}"]`);
-            if (selectedBtn) selectedBtn.classList.add('active');
-            
-            log('info', `Payment method selected: ${type}`);
-        }
-
-        // ========== ДЕПОЗИТ ==========
-        async function processDeposit() {
+// ========== ДЕПОЗИТ ==========
+async function processDeposit() {
     if (!state.isLoaded) return;
     
     const account = document.getElementById('account')?.value.trim() || '';
@@ -1816,14 +1880,14 @@ function retryLoadWallets() {
     
     log('info', 'Processing deposit request', { account, amount, wallet, method });
     
-    // ===== 1. ПРОВЕРКА ЗАПОЛНЕННОСТИ ПОЛЕЙ =====
+    // Проверка заполненности полей
     if (!account || !amount || !wallet || !method) {
         showNotification(!account || !amount || !wallet ? 'fill_all_fields' : 'select_method', true);
         log('warning', 'Deposit validation failed: missing fields');
         return;
     }
     
-    // ===== 2. ПРОВЕРКА МИНИМАЛЬНОЙ СУММЫ =====
+    // Проверка минимальной суммы
     if (parseInt(amount) < (state.config?.minDeposit || 100)) {
         showNotification('min_deposit', true, {
             amount: state.config?.minDeposit || 100,
@@ -1832,289 +1896,295 @@ function retryLoadWallets() {
         log('warning', `Deposit amount too low: ${amount}`);
         return;
     }
-            
-            // Сохраняем аккаунт и кошелёк
-            state.userAccount = account;
-            state.savedWallet = wallet;
-            localStorage.setItem('userAccount', account);
-            localStorage.setItem('userWallet', wallet);
-            
-            log('info', 'User data saved to localStorage');
-            
-            const btn = document.getElementById('depositBtn');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<div class="spinner"></div> ' + translate('deposit.get_wallet_button');
-            }
-            
-            try {
-                const url = `${API_URL}?action=check_deposit&account=${encodeURIComponent(account)}&amount=${encodeURIComponent(amount)}&wallet=${encodeURIComponent(wallet)}&type=${encodeURIComponent(method)}&t=${Date.now()}`;
-                log('info', `Sending deposit request to: ${url}`);
-                
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                log('info', 'Deposit response received', result);
-                
-                if (result.status === 'success') {
-                    state.currentDeposit = {
-                        account: account,
-                        amount: amount,
-                        wallet: wallet,
-                        type: method,
-                        depositWallet: result.wallet
-                    };
-                    
-                    showDepositResult(amount, result.wallet);
-                    showNotification('deposit_received');
-                    log('success', 'Deposit processed successfully', { depositWallet: result.wallet });
-                } else {
-                    showNotification('server_error', true, { message: result.message });
-                    log('error', 'Deposit failed on server', result);
-                }
-            } catch (error) {
-                showNotification('network_error', true);
-                log('error', 'Network error during deposit', error);
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = translate('deposit.get_wallet_button');
-                }
-            }
-        }
-
-        function showDepositResult(amount, wallet) {
-            document.getElementById('displayAmount').textContent = `${amount} ${state.config?.currency || 'EGP'}`;
-            document.getElementById('depositWallet').textContent = wallet;
-            
-            // Показываем попап
-            document.getElementById('popupOverlay').classList.add('active');
-            document.getElementById('depositPopup').classList.add('active');
-            
-            startDepositTimer();
-            log('info', 'Deposit result shown in popup', { amount, wallet });
-        }
-
-        function closeDepositPopup() {
-            document.getElementById('popupOverlay').classList.remove('active');
-            document.getElementById('depositPopup').classList.remove('active');
-            resetDepositForm();
-            log('info', 'Deposit popup closed');
-        }
-
-        function startDepositTimer() {
-            let timeLeft = 15 * 60;
-            const timerElement = document.getElementById('depositTimer');
-            
-            if (state.depositTimer) clearInterval(state.depositTimer);
-            
-            log('info', 'Deposit timer started (15 minutes)');
-            
-            state.depositTimer = setInterval(() => {
-                timeLeft--;
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                timerElement.innerHTML = `⏰ <span data-i18n="popup.time_left">${translate('popup.time_left')}</span> ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (timeLeft < 60) {
-                    timerElement.classList.add('warning');
-                }
-                
-                if (timeLeft <= 0) {
-                    clearInterval(state.depositTimer);
-                    timerElement.textContent = '⏰ ' + translate('popup.time_left') + ' 00:00';
-                    document.getElementById('confirmBtn').disabled = true;
-                    showNotification('time_expired', true);
-                    log('warning', 'Deposit timer expired');
-                }
-            }, 1000);
-        }
-
-                async function confirmDeposit() {
-            console.log('=== DEBUG: confirmDeposit вызвана ===');
+        
+    state.userAccount = account;
+    state.savedWallet = wallet;
+    localStorage.setItem('userAccount', account);
+    localStorage.setItem('userWallet', wallet);
     
-            if (!state.currentDeposit) {
-                console.log('ERROR: Нет текущего депозита');
-                showNotification('no_deposit', true);
-                return;
-            }
+    log('info', 'User data saved to localStorage');
     
-            console.log('Данные депозита:', state.currentDeposit);
+    const btn = document.getElementById('depositBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner"></div> ' + translate('deposit.get_wallet_button');
+    }
+    
+    try {
+        const url = `${API_URL}?action=check_deposit&account=${encodeURIComponent(account)}&amount=${encodeURIComponent(amount)}&wallet=${encodeURIComponent(wallet)}&type=${encodeURIComponent(method)}&t=${Date.now()}`;
+        log('info', `Sending deposit request to: ${url}`);
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        log('info', 'Deposit response received', result);
+        
+        if (result.status === 'success') {
+            state.currentDeposit = {
+                account: account,
+                amount: amount,
+                wallet: wallet,
+                type: method,
+                depositWallet: result.wallet
+            };
             
-            const confirmBtn = document.getElementById('confirmBtn');
-            if (confirmBtn) {
-                confirmBtn.disabled = true;
-                confirmBtn.textContent = translate('popup.confirm_button');
-            }
+            showDepositResult(amount, result.wallet);
+            showNotification('deposit_received');
+            log('success', 'Deposit processed successfully', { depositWallet: result.wallet });
             
-            log('info', 'Confirming deposit', state.currentDeposit);
+        } else if (result.status === 'error' && result.message?.includes('Please wait')) {
+            // ОБРАБОТКА АНТИСПАМ ОШИБКИ
+            log('warning', 'Deposit blocked by antispam', result);
             
-            try {
-                const params = new URLSearchParams({
-                    action: 'confirm_deposit',
-                    account: state.currentDeposit.account,
-                    amount: state.currentDeposit.amount,
-                    wallet: state.currentDeposit.wallet,
-                    depositWallet: state.currentDeposit.depositWallet,
-                    type: state.currentDeposit.type,
-                    t: Date.now()
-                });
-                
-                const confirmUrl = `${API_URL}?${params.toString()}`;
-                log('info', `Sending confirmation to: ${confirmUrl}`);
-                
-                const response = await fetch(confirmUrl);
-                const result = await response.json();
-                
-                log('info', 'Confirmation response received', result);
-                
-                if (result.status === 'success') {
-                    showNotification('confirmed');
-                    
-                    const timerElement = document.getElementById('depositTimer');
-                    if (timerElement) {
-                        timerElement.textContent = '✅ ' + translate('popup.confirm_button');
-                        timerElement.className = 'timer';
-                    }
-                    
-                    log('success', 'Deposit confirmed successfully');
-                    
-                    setTimeout(() => {
-                        closeDepositPopup();
-                    }, 2000);
-                    
-                } else {
-                    showNotification('confirmation_failed', true, { message: result.message });
-                    if (confirmBtn) confirmBtn.disabled = false;
-                    log('error', 'Deposit confirmation failed', result);
-                }
-                
-            } catch (error) {
-                console.error('❌ Confirmation error:', error);
-                showNotification('network_error', true);
-                if (confirmBtn) confirmBtn.disabled = false;
-                log('error', 'Network error during confirmation', error);
-            }
+            const minutesMatch = result.message.match(/(\d+)\s*minute?s?/i);
+            const minutesLeft = minutesMatch ? parseInt(minutesMatch[1]) : 3;
+            
+            showAntispamNotification(minutesLeft, state.currentLanguage);
+            
+        } else {
+            showNotification('server_error', true, { message: result.message });
+            log('error', 'Deposit failed on server', result);
         }
+    } catch (error) {
+        showNotification('network_error', true);
+        log('error', 'Network error during deposit', error);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = translate('deposit.get_wallet_button');
+        }
+    }
+}
 
-        function resetDepositForm() {
-            document.getElementById('amount').value = '';
-            state.selectedMethod = null;
-            document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
-            
-            if (state.depositTimer) {
-                clearInterval(state.depositTimer);
-                log('info', 'Deposit timer cleared');
-            }
-            state.currentDeposit = null;
-            
-            document.getElementById('confirmBtn').disabled = false;
-            document.getElementById('confirmBtn').textContent = translate('popup.confirm_button');
+function showDepositResult(amount, wallet) {
+    document.getElementById('displayAmount').textContent = `${amount} ${state.config?.currency || 'EGP'}`;
+    document.getElementById('depositWallet').textContent = wallet;
+    
+    document.getElementById('popupOverlay').classList.add('active');
+    document.getElementById('depositPopup').classList.add('active');
+    
+    startDepositTimer();
+    log('info', 'Deposit result shown in popup', { amount, wallet });
+}
+
+function closeDepositPopup() {
+    document.getElementById('popupOverlay').classList.remove('active');
+    document.getElementById('depositPopup').classList.remove('active');
+    resetDepositForm();
+    log('info', 'Deposit popup closed');
+}
+
+function startDepositTimer() {
+    let timeLeft = 15 * 60;
+    const timerElement = document.getElementById('depositTimer');
+    
+    if (state.depositTimer) clearInterval(state.depositTimer);
+    
+    log('info', 'Deposit timer started (15 minutes)');
+    
+    state.depositTimer = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.innerHTML = `⏰ <span data-i18n="popup.time_left">${translate('popup.time_left')}</span> ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft < 60) {
+            timerElement.classList.add('warning');
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(state.depositTimer);
+            timerElement.textContent = '⏰ ' + translate('popup.time_left') + ' 00:00';
+            document.getElementById('confirmBtn').disabled = true;
+            showNotification('time_expired', true);
+            log('warning', 'Deposit timer expired');
+        }
+    }, 1000);
+}
+
+async function confirmDeposit() {
+    console.log('=== DEBUG: confirmDeposit вызвана ===');
+
+    if (!state.currentDeposit) {
+        console.log('ERROR: Нет текущего депозита');
+        showNotification('no_deposit', true);
+        return;
+    }
+
+    console.log('Данные депозита:', state.currentDeposit);
+    
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = translate('popup.confirm_button');
+    }
+    
+    log('info', 'Confirming deposit', state.currentDeposit);
+    
+    try {
+        const params = new URLSearchParams({
+            action: 'confirm_deposit',
+            account: state.currentDeposit.account,
+            amount: state.currentDeposit.amount,
+            wallet: state.currentDeposit.wallet,
+            depositWallet: state.currentDeposit.depositWallet,
+            type: state.currentDeposit.type,
+            t: Date.now()
+        });
+        
+        const confirmUrl = `${API_URL}?${params.toString()}`;
+        log('info', `Sending confirmation to: ${confirmUrl}`);
+        
+        const response = await fetch(confirmUrl);
+        const result = await response.json();
+        
+        log('info', 'Confirmation response received', result);
+        
+        if (result.status === 'success') {
+            showNotification('confirmed');
             
             const timerElement = document.getElementById('depositTimer');
             if (timerElement) {
-                timerElement.textContent = '⏰ ' + translate('popup.time_left') + ' 15:00';
+                timerElement.textContent = '✅ ' + translate('popup.confirm_button');
                 timerElement.className = 'timer';
             }
             
-            log('info', 'Deposit form reset');
+            log('success', 'Deposit confirmed successfully');
+            
+            setTimeout(() => {
+                closeDepositPopup();
+            }, 2000);
+            
+        } else {
+            showNotification('confirmation_failed', true, { message: result.message });
+            if (confirmBtn) confirmBtn.disabled = false;
+            log('error', 'Deposit confirmation failed', result);
         }
+        
+    } catch (error) {
+        console.error('❌ Confirmation error:', error);
+        showNotification('network_error', true);
+        if (confirmBtn) confirmBtn.disabled = false;
+        log('error', 'Network error during confirmation', error);
+    }
+}
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showNotification('copied');
-                log('info', `Text copied to clipboard: ${text}`);
-            });
-        }
+function resetDepositForm() {
+    document.getElementById('amount').value = '';
+    state.selectedMethod = null;
+    document.querySelectorAll('.wallet-type-btn').forEach(btn => btn.classList.remove('active'));
+    
+    if (state.depositTimer) {
+        clearInterval(state.depositTimer);
+        log('info', 'Deposit timer cleared');
+    }
+    state.currentDeposit = null;
+    
+    document.getElementById('confirmBtn').disabled = false;
+    document.getElementById('confirmBtn').textContent = translate('popup.confirm_button');
+    
+    const timerElement = document.getElementById('depositTimer');
+    if (timerElement) {
+        timerElement.textContent = '⏰ ' + translate('popup.time_left') + ' 15:00';
+        timerElement.className = 'timer';
+    }
+    
+    log('info', 'Deposit form reset');
+}
 
-        // ========== ВЫВОД ==========
-        async function processWithdrawal() {
-            if (!state.isLoaded) return;
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('copied');
+        log('info', `Text copied to clipboard: ${text}`);
+    });
+}
+
+// ========== ВЫВОД ==========
+async function processWithdrawal() {
+    if (!state.isLoaded) return;
+    
+    const account = document.getElementById('withdrawAccount')?.value.trim() || '';
+    const amount = document.getElementById('withdrawAmount')?.value || '';
+    const wallet = document.getElementById('withdrawWallet')?.value.trim() || '';
+    const code = document.getElementById('withdrawCode')?.value.trim() || '';
+    
+    log('info', 'Processing withdrawal request', { account, amount, wallet, code });
+    
+    if (!account || !amount || !wallet || !code) {
+        showNotification('fill_all_fields', true);
+        log('warning', 'Withdrawal validation failed: missing fields');
+        return;
+    }
+    
+    if (parseInt(amount) < (state.config?.minWithdrawal || 300)) {
+        showNotification('min_withdrawal', true, {
+            amount: state.config?.minWithdrawal || 300,
+            currency: state.config?.currency || 'EGP'
+        });
+        log('warning', `Withdrawal amount too low: ${amount}`);
+        return;
+    }
+    
+    if (code.length < 4) {
+        showNotification('code_length', true);
+        log('warning', `Withdrawal code too short: ${code.length} chars`);
+        return;
+    }
+    
+    state.savedWallet = wallet;
+    localStorage.setItem('userWallet', wallet);
+    
+    log('info', 'Wallet saved to localStorage');
+    
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const originalText = withdrawBtn?.textContent || translate('withdrawal.request_button');
+    
+    if (withdrawBtn) {
+        withdrawBtn.disabled = true;
+        withdrawBtn.textContent = translate('withdrawal.request_button');
+    }
+    
+    try {
+        const params = new URLSearchParams({
+            action: 'withdraw',
+            account: account,
+            amount: amount,
+            wallet: wallet,
+            code: code,
+            t: Date.now()
+        });
+        
+        const url = `${API_URL}?${params.toString()}`;
+        log('info', `Sending withdrawal request to: ${url}`);
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        log('info', 'Withdrawal response received', result);
+        
+        if (result.status === 'success') {
+            showNotification('withdrawal_submitted');
             
-            const account = document.getElementById('withdrawAccount')?.value.trim() || '';
-            const amount = document.getElementById('withdrawAmount')?.value || '';
-            const wallet = document.getElementById('withdrawWallet')?.value.trim() || '';
-            const code = document.getElementById('withdrawCode')?.value.trim() || '';
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('withdrawCode').value = '';
             
-            log('info', 'Processing withdrawal request', { account, amount, wallet, code });
+            log('success', 'Withdrawal request submitted successfully');
             
-            if (!account || !amount || !wallet || !code) {
-                showNotification('fill_all_fields', true);
-                log('warning', 'Withdrawal validation failed: missing fields');
-                return;
-            }
-            
-            if (parseInt(amount) < (state.config?.minWithdrawal || 300)) {
-                showNotification('min_withdrawal', true, {
-                    amount: state.config?.minWithdrawal || 300,
-                    currency: state.config?.currency || 'EGP'
-                });
-                log('warning', `Withdrawal amount too low: ${amount}`);
-                return;
-            }
-            
-            if (code.length < 4) {
-                showNotification('code_length', true);
-                log('warning', `Withdrawal code too short: ${code.length} chars`);
-                return;
-            }
-            
-            // Сохраняем кошелёк
-            state.savedWallet = wallet;
-            localStorage.setItem('userWallet', wallet);
-            
-            log('info', 'Wallet saved to localStorage');
-            
-            const withdrawBtn = document.getElementById('withdrawBtn');
-            const originalText = withdrawBtn?.textContent || translate('withdrawal.request_button');
-            
-            if (withdrawBtn) {
-                withdrawBtn.disabled = true;
-                withdrawBtn.textContent = translate('withdrawal.request_button');
-            }
-            
-            try {
-                const params = new URLSearchParams({
-                    action: 'withdraw',
-                    account: account,
-                    amount: amount,
-                    wallet: wallet,
-                    code: code,
-                    t: Date.now()
-                });
-                
-                const url = `${API_URL}?${params.toString()}`;
-                log('info', `Sending withdrawal request to: ${url}`);
-                
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                log('info', 'Withdrawal response received', result);
-                
-                if (result.status === 'success') {
-                    showNotification('withdrawal_submitted');
-                    
-                    // Очищаем форму
-                    document.getElementById('withdrawAmount').value = '';
-                    document.getElementById('withdrawCode').value = '';
-                    
-                    log('success', 'Withdrawal request submitted successfully');
-                    
-                } else {
-                    showNotification(`❌ ${result.message || 'Withdrawal failed'}`, true);
-                    log('error', 'Withdrawal failed on server', result);
-                }
-                
-            } catch (error) {
-                showNotification('❌ Network error. Please try again.', true);
-                log('error', 'Network error during withdrawal', error);
-            } finally {
-                if (withdrawBtn) {
-                    withdrawBtn.disabled = false;
-                    withdrawBtn.textContent = originalText;
-                }
-            }
+        } else {
+            showNotification(`❌ ${result.message || 'Withdrawal failed'}`, true);
+            log('error', 'Withdrawal failed on server', result);
         }
+        
+    } catch (error) {
+        showNotification('❌ Network error. Please try again.', true);
+        log('error', 'Network error during withdrawal', error);
+    } finally {
+        if (withdrawBtn) {
+            withdrawBtn.disabled = false;
+            withdrawBtn.textContent = originalText;
+        }
+    }
+}
     </script>
 </body>
 </html>
